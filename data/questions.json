@@ -1,0 +1,1885 @@
+{
+  "theory": [
+    {
+      "id": "t001",
+      "topic": "list",
+      "question": "Какие методы списка мутируют его на месте и возвращают None?",
+      "answer": "Методы, изменяющие список на месте и возвращающие None: append(), insert(), remove(), pop() (возвращает элемент), sort(), reverse(), extend(), clear(). Ловушка: result = lst.sort() вернёт None — типичная ошибка на собесе. Немутирующие аналоги: sorted() и reversed().",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `response_ids = [r['id'] for r in response.json()]` — список ID из API ответа. `assert item_id in response_ids`. `append()` для накопления test cases в параметризации."
+    },
+    {
+      "id": "t002",
+      "topic": "list",
+      "question": "В чём разница между list.sort() и sorted()?",
+      "answer": "list.sort() — мутирует список на месте, возвращает None, работает только для списков. sorted() — возвращает новый отсортированный список, не меняет оригинал, работает для любого итерируемого объекта. На собесе: всегда уточняй, нужно ли сохранить оригинал.",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `sorted(response.json()['items'], key=lambda x: x['price'])` — проверка что API вернул отсортированный список. `list.sort()` мутирует — опасно в фикстурах!"
+    },
+    {
+      "id": "t003",
+      "topic": "dict",
+      "question": "Как безопасно получить значение из словаря, если ключ может отсутствовать?",
+      "answer": "Три способа:\n1. dict.get(key, default) — возвращает default если ключ отсутствует\n2. if key in dict: ... — проверка перед доступом\n3. try/except KeyError — для случаев, где отсутствие ключа — исключение\nLOVUSHKA: dict[key] без проверки бросает KeyError.",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `response.json().get('error_message', '')` — безопасное чтение поля из ответа API без KeyError. `response.json().get('data', {}).get('user', {})` — вложенные ответы."
+    },
+    {
+      "id": "t006",
+      "topic": "comprehensions",
+      "question": "Что такое list comprehension? Каков его синтаксис?",
+      "answer": "List comprehension — компактный способ создания списков. Синтаксис: [выражение for элемент in итерируемый if условие]. Пример: [x**2 for x in range(10) if x % 2 == 0] — квадраты чётных чисел. Читается справа налево: берём x из range, если чётный, возводим в квадрат.",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `[r.json() for r in responses]` — собрать тела ответов. `[u['email'] for u in users if u['active']]` — фильтрация активных пользователей для параметризации."
+    },
+    {
+      "id": "t009",
+      "topic": "strings",
+      "question": "Как разобрать строку '100,200,300' в список чисел?",
+      "answer": "Правильно: [int(x) for x in '100,200,300'.split(',')]\nЧерез map: list(map(int, '100,200,300'.split(',')))\nС обработкой ошибок:\ndef parse_numbers(s: str) -> list[int]:\n    result = []\n    for part in s.split(','):\n        try:\n            result.append(int(part.strip()))\n        except ValueError:\n            pass\n    return result",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: парсинг CSV-данных из API, разбивка query string `url.split('?')[1].split('&')`, извлечение Bearer токена `auth_header.split(' ')[1]`."
+    },
+    {
+      "id": "t013",
+      "topic": "list",
+      "question": "Что такое срез (slice) в Python? Как развернуть список через срез?",
+      "answer": "Срез: list[start:stop:step]. Дефолты: start=0, stop=len, step=1. lst[::-1] — разворот списка (step=-1). lst[::2] — каждый второй элемент. lst[1:4] — элементы с индекса 1 до 3. Срез НЕ мутирует оригинал — создаёт новый список.",
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `raise AssertionError(f'Expected 200, got {resp.status_code}: {resp.text}')` — кастомное сообщение об ошибке. Custom exceptions в test helpers: `class ApiError(Exception): pass`."
+    },
+    {
+      "id": "t051",
+      "topic": "functions",
+      "priority": 1,
+      "question": "Что такое *args и **kwargs? Как использовать?",
+      "answer": "**`*args`** — переменное количество позиционных аргументов (tuple внутри функции).\n**`**kwargs`** — переменное количество именованных аргументов (dict внутри функции).\n\n```python\ndef describe(*args, **kwargs):\n    print(args)    # tuple: ('Alice', 30)\n    print(kwargs)  # dict: {'city': 'Moscow'}\n\ndescribe('Alice', 30, city='Moscow')\n```\n\n**Порядок параметров в сигнатуре:**\n```python\ndef func(pos1, pos2, /, regular, *, kw_only, **kwargs):\n    pass\n#         ^positional  ^both    ^keyword-only\n```\n\n**Передача в другую функцию (forwarding):**\n```python\ndef wrapper(*args, **kwargs):\n    return original_func(*args, **kwargs)  # распаковка!\n```\n\n**На собесе:** частый вопрос — в каком порядке идут параметры и что возвращают args/kwargs внутри функции. args — это TUPLE, kwargs — DICT.",
+      "difficulty": "easy",
+      "qa_context": "В тестах: `def create_user(*required_fields, **optional_fields)` — гибкое создание test data. `requests.get(url, **headers_dict)` — передача kwargs в HTTP запрос."
+    },
+    {
+      "id": "t053",
+      "topic": "modules",
+      "priority": 1,
+      "question": "Что такое `if __name__ == '__main__':`? Зачем нужна эта проверка?",
+      "answer": "**`__name__`** — специальная переменная Python. Её значение:\n- `'__main__'` — если файл запускается **напрямую**\n- `'имя_файла'` — если файл **импортируется** другим модулем\n\n```python\n# utils.py\ndef add(a, b):\n    return a + b\n\nif __name__ == '__main__':\n    # Этот блок выполнится ТОЛЬКО при запуске utils.py напрямую\n    # При import utils — НЕ выполнится\n    print(add(2, 3))  # 5\n```\n\n**Зачем:** позволяет файлу быть одновременно:\n- библиотекой (можно импортировать)\n- скриптом (можно запускать напрямую)\n\n**Без этой проверки:**\n```python\n# Если просто написать:\nprint(add(2, 3))\n# При import utils — этот print выполнится! Нежелательный side effect\n```\n\n**На собесе:** часто спрашивают «зачем это нужно» — ответ: изоляция кода запуска от кода библиотеки.",
+      "difficulty": "easy",
+      "qa_context": "В тестах: код под `if __name__ == '__main__':` — это ручной запуск скрипта генерации данных. При `import conftest` pytest не выполнит этот блок случайно."
+    },
+    {
+      "id": "t054",
+      "topic": "modules",
+      "priority": 1,
+      "question": "Разница между `import module`, `from module import X` и `from module import *`?",
+      "answer": "**`import module`** — импортирует модуль целиком, доступ через пространство имён:\n```python\nimport os\nos.path.join('a', 'b')  # нужен префикс os.\n```\n\n**`from module import X`** — импортирует конкретное имя в текущее пространство:\n```python\nfrom os.path import join\njoin('a', 'b')  # без префикса\n```\n\n**`import module as alias`** — псевдоним для длинных имён:\n```python\nimport collections as col\ncol.Counter('hello')\n```\n\n**`from module import *`** — ❌ антипаттерн:\n```python\nfrom os.path import *  # что именно импортировано? Неизвестно!\n# Может перезаписать твои функции с теми же именами\n```\n\n**Рекомендация (PEP 8):**\n1. Предпочитай `import module` — явно видно откуда пришло\n2. `from X import Y` — если используешь часто и имя длинное\n3. Никогда `from X import *` — в продакшене\n\n**На собесе:** `from X import *` — типичный вопрос «что не так с этим кодом».",
+      "difficulty": "easy",
+      "qa_context": "В тестах: `from pytest import fixture, mark, raises` — явный импорт. `import pytest` и `@pytest.fixture` — явно виден источник. Никогда `from pytest import *` — засоряет namespace."
+    },
+    {
+      "id": "t055",
+      "topic": "files",
+      "priority": 1,
+      "question": "Как правильно читать и записывать файлы в Python? Зачем `with open(...)`?",
+      "answer": "**`with open(...) as f`** — контекстный менеджер, гарантирует закрытие файла даже при исключении:\n\n```python\n# Чтение целиком\nwith open('data.txt', 'r', encoding='utf-8') as f:\n    content = f.read()        # вся строка\n    # или\n    lines = f.readlines()     # список строк\n    # или\n    for line in f:            # построчно (лучше для больших файлов)\n        print(line.strip())\n\n# Запись\nwith open('output.txt', 'w', encoding='utf-8') as f:\n    f.write('Hello\\n')\n    f.writelines(['line1\\n', 'line2\\n'])\n\n# Дозапись\nwith open('log.txt', 'a', encoding='utf-8') as f:\n    f.write('new entry\\n')\n```\n\n**Режимы:** `'r'` читать, `'w'` писать (перезапись), `'a'` дозапись, `'rb'`/`'wb'` бинарный.\n\n**Без `with` — плохо:**\n```python\nf = open('file.txt')\n# если здесь исключение — файл не закроется! Утечка ресурса\nf.close()\n```\n\n**На собесе:** всегда используй `with open`, всегда указывай `encoding='utf-8'`.",
+      "difficulty": "easy",
+      "qa_context": "В тестах: `with open('test_data.json') as f: data = json.load(f)` — загрузка тест-данных из файла. `pathlib.Path(__file__).parent / 'data' / 'users.json'` — путь относительно conftest."
+    },
+    {
+      "id": "t066",
+      "topic": "pytest",
+      "priority": 1,
+      "difficulty": "easy",
+      "question": "Как организовать структуру папок тест-проекта? tests/, conftest.py, fixtures/",
+      "answer": "**Рекомендуемая структура тест-проекта для REST API:**\n\n```\nproject/\n├── src/                      # продакшн код\n├── tests/\n│   ├── conftest.py           # глобальные фикстуры (api_client, auth_token)\n│   ├── pytest.ini            # или pyproject.toml\n│   ├── api/\n│   │   ├── conftest.py       # фикстуры только для API тестов\n│   │   ├── test_users.py\n│   │   ├── test_orders.py\n│   │   └── test_auth.py\n│   ├── fixtures/             # тест-данные\n│   │   ├── users.json\n│   │   └── orders.json\n│   └── helpers/\n│       ├── __init__.py\n│       └── assertions.py    # кастомные assert хелперы\n└── requirements-test.txt\n```\n\n**Правило**: каждый `conftest.py` действует на свой уровень и ниже.\n- `tests/conftest.py` — для всего проекта\n- `tests/api/conftest.py` — только для API тестов\n\n**На собесе:** Спросят про `conftest.py` vs обычный файл с фикстурами. `conftest.py` подхватывается pytest автоматически — импорт не нужен.",
+      "qa_context": "Это базовая структура для любого QA-проекта. При собесе могут дать задание 'организуй тест-проект' — отвечай именно этой структурой. `conftest.py` на разных уровнях — ключевая концепция."
+    },
+    {
+      "id": "t067",
+      "topic": "pytest",
+      "priority": 1,
+      "difficulty": "easy",
+      "question": "Что такое pytest.ini / pyproject.toml для pytest? Как настроить markers, base_url, параметры запуска?",
+      "answer": "**pytest.ini** — конфигурационный файл pytest:\n\n```ini\n[pytest]\ntestpaths = tests\naddopts = -v --tb=short\nmarkers =\n    smoke: быстрые smoke-тесты\n    regression: полный регрессион\n    api: тесты API\n    slow: медленные тесты\n\n# Для pytest-base-url\nbase_url = https://api.example.com\n```\n\n**pyproject.toml** (современный вариант):\n```toml\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\naddopts = [\"-v\", \"--tb=short\", \"-x\"]\nmarkers = [\n    \"smoke: smoke tests\",\n    \"regression: regression tests\",\n]\n```\n\n**Запуск с маркерами:**\n```bash\npytest -m smoke              # только smoke тесты\npytest -m \"not slow\"         # исключить медленные\npytest -m \"api and smoke\"    # пересечение\npytest -k \"test_user\"        # по имени функции\npytest --base-url https://staging.api.com  # переопределить URL\n```\n\n**На собесе:** `addopts = -x --tb=short` — стоп на первом провале, короткий traceback. Маркеры обязательно регистрировать иначе pytest --strict-markers упадёт.",
+      "qa_context": "Конфигурация pytest — обязательный вопрос на собесе. `markers` для разделения smoke/regression, `testpaths` чтобы pytest не искал тесты по всему проекту, `addopts` для стандартных флагов CI."
+    },
+    {
+      "id": "t071",
+      "topic": "api_testing",
+      "priority": 1,
+      "difficulty": "easy",
+      "question": "Как работать с env-переменными в тестах? os.environ, python-dotenv, pytest конфиг.",
+      "answer": "**os.environ** — стандартная библиотека:\n```python\nimport os\n\nBASE_URL = os.environ['BASE_URL']              # KeyError если нет\nBASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')  # с default\n\n# В conftest.py\n@pytest.fixture(scope='session')\ndef base_url() -> str:\n    return os.environ.get('BASE_URL', 'http://localhost:8000')\n```\n\n**python-dotenv** — загрузка из `.env` файла:\n```python\n# .env файл (в .gitignore!)\nBASE_URL=https://api.staging.com\nAPI_TOKEN=secret_token_here\nTEST_USER=testuser@example.com\nTEST_PASSWORD=testpass123\n\n# conftest.py\nfrom dotenv import load_dotenv\nload_dotenv()  # загружает .env в os.environ\n\nBASE_URL = os.getenv('BASE_URL')\n```\n\n**pytest-base-url** плагин:\n```ini\n# pytest.ini\nbase_url = http://localhost:8000\n```\n```python\n# Автоматически инжектируется как фикстура\ndef test_something(base_url):\n    resp = requests.get(f'{base_url}/health')\n```\n\n**Переопределение из CLI:**\n```bash\npytest --base-url https://staging.api.com\nBASE_URL=https://prod.api.com pytest -m smoke\n```\n\n**На собесе:** Никогда не хардкодь URL и credentials в тестах! `.env` + `.gitignore` — обязательный паттерн. Interviewer спросит \"как запустить тесты на staging\" — должен знать этот ответ.",
+      "qa_context": "Управление конфигурацией — ключевой вопрос на собесе. Три варианта: `os.environ` для CI, `python-dotenv` для локальной разработки, `pytest.ini [base_url]` для статичного default. В реальных проектах все три используются вместе."
+    },
+    {
+      "id": "t004",
+      "topic": "dict",
+      "question": "Что такое defaultdict и когда его использовать?",
+      "answer": "defaultdict из collections автоматически создаёт значение по умолчанию при обращении к несуществующему ключу. defaultdict(int) — счётчики, defaultdict(list) — группировка. Пример: freq = defaultdict(int); freq[char] += 1 — не будет KeyError.",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `expected_ids = {1, 2, 3}; actual_ids = {u['id'] for u in users}; assert expected_ids == actual_ids` — проверка наличия обязательных элементов без учёта порядка."
+    },
+    {
+      "id": "t005",
+      "topic": "set",
+      "question": "В чём разница между set и frozenset? Когда использовать frozenset?",
+      "answer": "set — изменяемый, нельзя использовать как ключ словаря или элемент другого set. frozenset — неизменяемый, хешируемый, можно использовать как ключ dict или элемент set. Применение: кэширование множеств, ключи в dict где нужны множества.",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `assert set(response.json().keys()) >= {'id', 'name', 'email'}` — проверка что все обязательные поля присутствуют в ответе."
+    },
+    {
+      "id": "t007",
+      "topic": "comprehensions",
+      "question": "В чём разница между list comprehension и generator expression?",
+      "answer": "List comprehension [x for x in ...] — сразу создаёт весь список в памяти. Generator expression (x for x in ...) — создаёт генератор, элементы вычисляются лениво по мере запроса. Для больших данных генератор экономит память. sum(x**2 for x in range(10**6)) — не создаёт список!",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `{u['id']: u['name'] for u in api_response}` — преобразовать список пользователей в словарь id→name для быстрой проверки по ID."
+    },
+    {
+      "id": "t012",
+      "topic": "errors",
+      "question": "Как правильно использовать try/except? Какие антипаттерны существуют?",
+      "answer": "Правильно: ловить конкретные исключения (ValueError, KeyError), а не голый except. Антипаттерны: 1) except: pass — проглатывает все ошибки 2) except Exception: pass — слишком широко 3) try с большим блоком — трудно определить источник. Используй else: для кода без ошибок, finally: для очистки.",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `with pytest.raises(ValueError, match='invalid'):` проверяет исключения. `try: resp.raise_for_status() except HTTPError as e: assert e.response.status_code == 404` — обработка HTTP ошибок."
+    },
+    {
+      "id": "t014",
+      "topic": "set",
+      "question": "Какие операции есть у множеств (set) в Python?",
+      "answer": "Теоретико-множественные операции:\n- a | b (union) — объединение\n- a & b (intersection) — пересечение\n- a - b (difference) — разность\n- a ^ b (symmetric_difference) — симметрическая разность\n- a.issubset(b) / a <= b — подмножество\n- a.issuperset(b) / a >= b — надмножество\nВсе работают за O(min(len(a), len(b))) в среднем.",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `class ApiClient: def __init__(self, base_url, token):` — базовый класс для HTTP клиента. Инкапсуляция `base_url` и `headers` — все методы используют их без повторения."
+    },
+    {
+      "id": "t045",
+      "topic": "errors",
+      "question": "Как правильно создать собственное исключение? Что такое exception chaining?",
+      "answer": "**Создание своего исключения:**\n\n```python\nclass AppError(Exception):\n    \"\"\"Базовое исключение приложения.\"\"\"\n\nclass ValidationError(AppError):\n    \"\"\"Ошибка валидации данных.\"\"\"\n\n    def __init__(self, field: str, message: str) -> None:\n        self.field = field\n        self.message = message\n        super().__init__(f'{field}: {message}')\n\n\nraise ValidationError('email', 'неверный формат')\n# ValidationError: email: неверный формат\n```\n\n**Exception chaining (цепочки исключений):**\n```python\ntry:\n    int('abc')\nexcept ValueError as e:\n    # raise from — явная цепочка (e становится __cause__)\n    raise ValidationError('age', 'должно быть числом') from e\n\n# Traceback покажет оба исключения с \"The above exception...\"\n```\n\n**Подавить контекст:**\n```python\nraise NewError('...') from None  # скрыть оригинальное исключение\n```\n\n**На собесе:** иерархия исключений — базовый AppError, от него наследуют специфичные. `raise X from Y` сохраняет оригинальный traceback.",
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: Singleton для `ApiClient` — один инстанс с одним токеном. `scope='session'` фикстура в pytest — это Singleton паттерн для тестовой сессии."
+    },
+    {
+      "id": "t052",
+      "topic": "functions",
+      "priority": 1,
+      "question": "Что такое замыкание (closure)? Зачем нужен nonlocal?",
+      "answer": "**Замыкание** — внутренняя функция, которая помнит переменные из внешней функции даже после её завершения.\n\n```python\ndef multiply(n: int):\n    def inner(m: int) -> int:\n        return n * m     # n — из лексического окружения\n    return inner\n\ndouble = multiply(2)\ntriple = multiply(3)\n\nprint(double(5))  # 10\nprint(triple(5))  # 15\n# multiply завершилась, но n «запомнилась» в inner\n```\n\n**nonlocal** — нужен чтобы изменить переменную внешней функции:\n```python\ndef counter():\n    count = 0\n    def increment():\n        nonlocal count   # без этого — UnboundLocalError!\n        count += 1\n        return count\n    return increment\n\ncnt = counter()\ncnt()  # 1\ncnt()  # 2\ncnt()  # 3\n```\n\n**Применения:** фабрики функций, мемоизация вручную, декораторы.\n**На собесе:** `nonlocal` — типичная ловушка. Без него `count += 1` падает с `UnboundLocalError`.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: замыкание для создания `make_auth_header(token)` — фабрика заголовков. `make_asserter(base_url)` — фабрика assert-функций. Используется в фикстурах."
+    },
+    {
+      "id": "t068",
+      "topic": "api_testing",
+      "priority": 1,
+      "difficulty": "medium",
+      "question": "Как проверить JSON schema ответа без Pydantic — через assert на типы, ключи и значения?",
+      "answer": "**Ручная schema validation** — паттерн без внешних библиотек:\n\n```python\ndef assert_user_schema(data: dict) -> None:\n    \"\"\"Проверить структуру объекта User из API.\"\"\"\n    # Обязательные ключи\n    required_keys = {'id', 'name', 'email', 'created_at'}\n    assert required_keys.issubset(data.keys()), \\\n        f\"Missing keys: {required_keys - data.keys()}\"\n\n    # Типы полей\n    assert isinstance(data['id'], int), f\"id must be int, got {type(data['id'])}\"\n    assert isinstance(data['name'], str), \"name must be str\"\n    assert isinstance(data['email'], str), \"email must be str\"\n    assert '@' in data['email'], f\"Invalid email: {data['email']}\"\n\n    # Значения\n    assert data['id'] > 0, f\"id must be positive, got {data['id']}\"\n    assert len(data['name']) > 0, \"name must not be empty\"\n\n# Использование в тесте:\ndef test_get_user(api_client):\n    resp = api_client.get('/users/1')\n    assert resp.status_code == 200\n    assert_user_schema(resp.json())\n```\n\n**Проверка списка объектов:**\n```python\ndef test_get_users(api_client):\n    resp = api_client.get('/users')\n    assert resp.status_code == 200\n    data = resp.json()\n    assert isinstance(data, list), \"Response must be a list\"\n    assert len(data) > 0, \"List must not be empty\"\n    for user in data:\n        assert_user_schema(user)\n```\n\n**На собесе:** Покажи что знаешь и ручной подход, и через Pydantic. Ручной — для простых случаев и когда нельзя добавлять зависимости.",
+      "qa_context": "Это САМЫЙ частый паттерн на собесах WB/Ozon — 'напиши тест для GET /users'. Всегда проверяй: 1) status_code, 2) наличие ключей, 3) типы значений, 4) бизнес-логику (id > 0, email содержит @)."
+    },
+    {
+      "id": "t070",
+      "topic": "api_testing",
+      "priority": 1,
+      "difficulty": "medium",
+      "question": "Как тестировать авторизацию: Bearer token, session cookies, refresh flow?",
+      "answer": "**Bearer Token авторизация:**\n```python\n# conftest.py\n@pytest.fixture(scope='session')\ndef auth_token(base_url: str) -> str:\n    resp = requests.post(f'{base_url}/auth/login', json={\n        'username': os.getenv('TEST_USER'),\n        'password': os.getenv('TEST_PASSWORD'),\n    })\n    assert resp.status_code == 200, f'Login failed: {resp.text}'\n    return resp.json()['access_token']\n\n@pytest.fixture(scope='session')\ndef auth_headers(auth_token: str) -> dict:\n    return {'Authorization': f'Bearer {auth_token}'}\n```\n\n**Тестирование auth эндпоинтов:**\n```python\ndef test_login_success(base_url):\n    resp = requests.post(f'{base_url}/auth/login',\n        json={'username': 'user', 'password': 'pass123'})\n    assert resp.status_code == 200\n    assert 'access_token' in resp.json()\n    assert resp.json()['token_type'] == 'bearer'\n\ndef test_login_wrong_password(base_url):\n    resp = requests.post(f'{base_url}/auth/login',\n        json={'username': 'user', 'password': 'wrong'})\n    assert resp.status_code == 401\n\ndef test_protected_without_token(base_url):\n    resp = requests.get(f'{base_url}/protected')\n    assert resp.status_code == 401\n\ndef test_protected_with_invalid_token(base_url):\n    resp = requests.get(f'{base_url}/protected',\n        headers={'Authorization': 'Bearer invalid_token'})\n    assert resp.status_code in (401, 403)\n```\n\n**Session cookies:**\n```python\n@pytest.fixture(scope='session')\ndef authenticated_session(base_url: str) -> requests.Session:\n    session = requests.Session()\n    session.post(f'{base_url}/login', data={'user': 'test', 'pass': 'test'})\n    return session  # cookies сохраняются автоматически\n```\n\n**На собесе:** Обязательно: scope='session' для токена, env-переменные для credentials, тестировать 401/403 для неавторизованного доступа.",
+      "qa_context": "Авторизация — ОБЯЗАТЕЛЬНАЯ часть любого API тест-проекта. На собесе 100% спросят как организовать auth в фикстурах. Ключевые моменты: `scope='session'` (один логин на всё), `os.getenv()` для credentials (не хардкодить!), тестировать негативные сценарии auth."
+    },
+    {
+      "id": "t072",
+      "topic": "errors",
+      "priority": 1,
+      "difficulty": "medium",
+      "question": "Как тестировать негативные сценарии API: 400, 401, 403, 404, 422, 500?",
+      "answer": "**Параметризованные негативные тесты:**\n```python\nimport pytest\nimport requests\n\n@pytest.mark.parametrize('user_id,expected_status', [\n    (999999, 404),    # несуществующий ID\n    (-1, 422),        # невалидный ID\n    (0, 422),         # граничное значение\n    ('abc', 422),     # неправильный тип\n])\ndef test_get_user_negative(api_client, user_id, expected_status):\n    resp = api_client.get(f'/users/{user_id}')\n    assert resp.status_code == expected_status\n\n# Валидация тела ошибки\ndef test_create_user_missing_email(api_client):\n    resp = api_client.post('/users', json={'name': 'Alice'})\n    assert resp.status_code == 422\n    error_data = resp.json()\n    assert 'detail' in error_data or 'error' in error_data\n    # FastAPI возвращает 'detail', Flask может вернуть 'error'\n\n# 401 - нет авторизации\ndef test_get_users_no_auth(base_url):\n    resp = requests.get(f'{base_url}/users')  # без токена!\n    assert resp.status_code == 401\n\n# 403 - нет прав\ndef test_delete_user_no_permission(regular_user_client):\n    resp = regular_user_client.delete('/users/1')\n    assert resp.status_code == 403\n\n# 500 - ошибка сервера (мок)\ndef test_server_error_handling(api_client, requests_mock):\n    requests_mock.get('/users', status_code=500, json={'error': 'Internal'})\n    with pytest.raises(ServerError):\n        api_client.get_users()  # клиент должен бросить исключение на 500\n```\n\n**На собесе:** Негативные тесты часто забывают. Правило: для каждого позитивного теста — минимум один негативный. Обязательно тестировать auth (401/403) и валидацию (422/400).",
+      "qa_context": "Негативное тестирование — обязательный вопрос на WB/Ozon собесах. Покажи параметризацию по статус-кодам. Проверяй не только `status_code` но и тело ошибки — поле `detail`/`error`/`message`. `@pytest.mark.parametrize` для boundary values."
+    },
+    {
+      "id": "t056",
+      "topic": "functions",
+      "priority": 2,
+      "question": "Что такое lambda-функция? Когда использовать, когда не использовать?",
+      "answer": "**Lambda** — анонимная функция в одну строку: `lambda аргументы: выражение`.\n\n```python\n# Обычная функция\ndef square(x): return x ** 2\n\n# Эквивалентная lambda\nsquare = lambda x: x ** 2\n\n# Типичные применения — как аргумент функции высшего порядка\nnums = [3, 1, 4, 1, 5, 9, 2]\nsorted(nums, key=lambda x: -x)          # сортировка по убыванию\nsorted(users, key=lambda u: u['age'])   # сортировка словарей\nfilter(lambda x: x % 2 == 0, nums)     # фильтрация\nmap(lambda x: x ** 2, nums)            # преобразование\n```\n\n**Когда НЕ использовать lambda:**\n```python\n# ❌ Присваивание lambda переменной — используй def\nfn = lambda x: x * 2     # PEP8: E731\n\n# ✅ Правильно\ndef fn(x): return x * 2\n\n# ❌ Сложная логика — нечитаемо\nf = lambda x, y: x if x > y else (y if y > 0 else 0)\n\n# ✅ Для сложного — def с понятным именем\n```\n\n**На собесе:** lambda уместна как аргумент `key=` или в `sorted/filter/map`. Для всего остального — `def`.",
+      "difficulty": "easy",
+      "qa_context": "В тестах: `sorted(users, key=lambda u: u['created_at'])` — сортировка ответа для проверки. `filter(lambda u: u['active'], users)` — но лучше comprehension для читаемости."
+    },
+    {
+      "id": "t063",
+      "topic": "functions",
+      "priority": 2,
+      "question": "Что такое функции высшего порядка? map, filter, sorted с key.",
+      "answer": "**Функция высшего порядка** — принимает или возвращает другую функцию.\n\n```python\n# map — применить функцию к каждому элементу\nnums = [1, 2, 3, 4, 5]\nsquared = list(map(lambda x: x**2, nums))  # [1, 4, 9, 16, 25]\n\n# Лучше через comprehension (читаемее):\nsquared = [x**2 for x in nums]\n\n# filter — отфильтровать по условию\nevens = list(filter(lambda x: x % 2 == 0, nums))  # [2, 4]\n# Через comprehension:\nevens = [x for x in nums if x % 2 == 0]\n\n# sorted с key — сортировка по произвольному критерию\nusers = [{'name': 'Bob', 'age': 25}, {'name': 'Alice', 'age': 30}]\nby_age = sorted(users, key=lambda u: u['age'])\nby_name = sorted(users, key=lambda u: u['name'])\n\n# Сортировка по нескольким полям\nby_age_name = sorted(users, key=lambda u: (u['age'], u['name']))\n\n# operator.itemgetter как альтернатива lambda\nfrom operator import itemgetter\nsorted(users, key=itemgetter('age'))\n```\n\n**На собесе:** `map`/`filter` vs comprehensions — comprehensions читаемее и предпочтительнее. `sorted(key=...)` — обязательно знать.",
+      "difficulty": "easy",
+      "qa_context": "В тестах: `sorted(users, key=lambda u: (u['role'], u['name']))` — многоуровневая сортировка для проверки порядка. `list(map(lambda r: r.json(), responses))` для batch запросов."
+    },
+    {
+      "id": "t008",
+      "topic": "algorithms",
+      "question": "Что такое O(n) нотация? Какова сложность поиска в list vs set?",
+      "answer": "Big O описывает рост времени выполнения при увеличении входных данных. Поиск 'x in list' — O(n), линейный перебор. Поиск 'x in set' — O(1) в среднем, хеш-таблица. Для частых проверок вхождения: конвертируй list в set сначала. Сортировка — O(n log n).",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `{status for r in responses for status in [r.status_code]}` — уникальные статус-коды из batch-запросов. `{r.status_code for r in responses} == {200}` — все ответы успешны."
+    },
+    {
+      "id": "t010",
+      "topic": "pytest",
+      "question": "Что такое фикстура pytest и зачем она нужна?",
+      "answer": "Фикстура — функция с декоратором @pytest.fixture, предоставляющая тестовый контекст. Решает проблему повторяющегося кода настройки. Scope: function (по умолчанию), class, module, session. Пример: @pytest.fixture def sample_data(): return [1, 2, 3]. Тест принимает её как аргумент.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Это ОСНОВА всех API тестов. Фикстура `api_client` с `requests.Session` и `base_url` — используется во всех тестах. `scope='session'` — один логин для всей сессии тестов."
+    },
+    {
+      "id": "t011",
+      "topic": "pytest",
+      "question": "Что делает @pytest.mark.parametrize?",
+      "answer": "Позволяет запустить один тест с несколькими наборами входных данных. Синтаксис: @pytest.mark.parametrize('a, b, expected', [(1, 2, 3), (0, 0, 0)]). Каждый набор — отдельный тест-кейс. Заменяет копирование похожих тестов. На собесе демонстрирует зрелость в тест-дизайне.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Это КЛЮЧЕВОЙ паттерн QA. `@pytest.mark.parametrize('status_code,endpoint', [(200, '/users'), (404, '/users/999')])` — один тест проверяет все эндпоинты и статусы."
+    },
+    {
+      "id": "t015",
+      "topic": "generators",
+      "question": "Что такое генератор и ключевое слово yield?",
+      "answer": "Генератор — функция с yield вместо return. Возвращает итератор, вычисляющий значения лениво. Каждый вызов next() выполняет код до следующего yield и приостанавливается. Преимущество: экономия памяти — не хранит все значения сразу. def squares(n): for i in range(n): yield i**2",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `@property def auth_headers(self): return {'Authorization': f'Bearer {self._token}'}` — вычисляемый заголовок. `@cached_property` для токена со сроком жизни."
+    },
+    {
+      "id": "t016",
+      "topic": "oop",
+      "question": "Что такое __init__, __str__, __repr__ и в чём разница между __str__ и __repr__?",
+      "answer": "__init__ — конструктор, вызывается при создании объекта.\n__str__ — 'человекочитаемое' представление (print(obj)).\n__repr__ — 'разработческое' представление (repr(obj), в REPL).\nРазница: __str__ для конечного пользователя, __repr__ для отладки — должен быть однозначным, желательно воспроизводимым (eval(repr(obj)) == obj). Если __str__ не определён, Python использует __repr__.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `def __repr__(self): return f'ApiResponse(status={self.status}, body={self.body})'` — читаемый вывод в ошибках pytest. `__str__` для assert messages."
+    },
+    {
+      "id": "t017",
+      "topic": "oop",
+      "question": "Что такое @classmethod и @staticmethod? Когда использовать каждый?",
+      "answer": "@staticmethod — обычная функция внутри класса, не получает ни cls, ни self. Используй для утилит, логически связанных с классом.\n@classmethod — получает cls (сам класс) первым аргументом. Используй для альтернативных конструкторов: MyClass.from_string('...').\nПример: date.today() — classmethod, date.fromisoformat() — classmethod.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `ApiClient.from_env()` через `@classmethod` — создание клиента из env-переменных `BASE_URL`, `API_TOKEN`. Паттерн для CI/CD где конфиг в env."
+    },
+    {
+      "id": "t018",
+      "topic": "oop",
+      "question": "Что такое наследование в Python? Что делает super()?",
+      "answer": "Наследование позволяет классу-потомку использовать методы родителя. super() возвращает прокси-объект, позволяющий вызывать методы родительского класса.\nПример: super().__init__() вызывает __init__ родителя в конструкторе потомка.\nMRO (Method Resolution Order) — порядок поиска методов, алгоритм C3 linearization. Смотреть: MyClass.__mro__.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `class AuthenticatedClient(BaseApiClient):` наследует всю HTTP-логику, переопределяет `_get_headers()`. `super().__init__(base_url)` в конструкторе."
+    },
+    {
+      "id": "t019",
+      "topic": "oop",
+      "question": "Что такое @property и зачем он нужен?",
+      "answer": "@property позволяет обращаться к методу как к атрибуту (без скобок). Используется для:\n1. Геттеры с валидацией\n2. Вычисляемые поля\n3. Инкапсуляция (приватный _атрибут + публичный доступ)\n\nПример:\n@property\ndef price(self): return self._price\n@price.setter\ndef price(self, v): self._price = max(0, v)",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `class OrderApiClient(BaseClient): def create_order(self, payload): ...` — Page Object для API. Каждый сервис = отдельный класс с методами эндпоинтов."
+    },
+    {
+      "id": "t020",
+      "topic": "oop",
+      "question": "Что такое dataclass в Python? Чем лучше обычного класса?",
+      "answer": "@dataclass (Python 3.7+) автоматически генерирует __init__, __repr__, __eq__ на основе аннотаций полей. Преимущества: меньше boilerplate, читаемость, поддержка frozen (неизменяемые), slots.\nПример:\n@dataclass\nclass Point:\n    x: float\n    y: float\n    z: float = 0.0\nЧем отличается от namedtuple: изменяем, поддерживает наследование, дефолтные значения.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `isinstance(response_data, dict)` — проверка типа. `isinstance(user_id, int)` в schema validation. `type(resp.json()['count']) is int` строже, но хуже для наследования."
+    },
+    {
+      "id": "t025",
+      "topic": "api_testing",
+      "question": "Как тестировать REST API с pytest + requests? Опиши структуру теста.",
+      "answer": "Базовая структура:\n\nimport requests\nimport pytest\n\nBASE_URL = 'https://api.example.com'\n\n@pytest.fixture\ndef auth_headers():\n    return {'Authorization': 'Bearer test_token'}\n\ndef test_get_users(auth_headers):\n    response = requests.get(f'{BASE_URL}/users', headers=auth_headers)\n    assert response.status_code == 200\n    data = response.json()\n    assert isinstance(data, list)\n    assert 'id' in data[0]\n\nКлючевые проверки: status_code, schema (ключи), типы данных, время ответа.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Это базовая структура КАЖДОГО API теста: фикстура с клиентом, вызов эндпоинта, assert на status_code, assert на поля ответа. Шаблон для 90% тестов."
+    },
+    {
+      "id": "t026",
+      "topic": "api_testing",
+      "question": "Как мокировать HTTP-запросы в pytest? Зачем это нужно?",
+      "answer": "Мокирование нужно чтобы тесты не зависели от внешних сервисов (скорость, стабильность, стоимость).\n\nВариант 1 — unittest.mock:\nfrom unittest.mock import patch, MagicMock\n\n@patch('requests.get')\ndef test_api(mock_get):\n    mock_get.return_value.status_code = 200\n    mock_get.return_value.json.return_value = {'id': 1}\n    result = my_function()\n    assert result['id'] == 1\n\nВариант 2 — pytest-mock:\ndef test_api(mocker):\n    mock = mocker.patch('requests.get')\n    mock.return_value.json.return_value = [{'id': 1}]",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "`@patch('mymodule.requests.get')` — когда тестируешь клиентский код который вызывает API. `mock.return_value.json.return_value = {'id': 1}` — контроль ответа без реального сервера."
+    },
+    {
+      "id": "t027",
+      "topic": "api_testing",
+      "question": "Что такое pytest-httpx или responses библиотека для тестирования HTTP?",
+      "answer": "responses — библиотека для мокирования requests без patch:\n\nimport responses\n\n@responses.activate\ndef test_api_call():\n    responses.add(\n        responses.GET,\n        'https://api.example.com/users',\n        json=[{'id': 1, 'name': 'Alice'}],\n        status=200\n    )\n    result = get_users()  # функция внутри делает requests.get\n    assert len(result) == 1\n\nПреимущество: декларативно, не нужен patch, ловит реальные URL.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "`@responses.activate` + `responses.add(GET, url, json={...})` — более читаемый мок для REST. Идеален когда тестируешь код который использует `requests` напрямую."
+    },
+    {
+      "id": "t028",
+      "topic": "api_testing",
+      "question": "Как использовать Pydantic для валидации ответа API?",
+      "answer": "Pydantic позволяет валидировать JSON-ответ против схемы:\n\nfrom pydantic import BaseModel\nfrom typing import Optional\n\nclass UserResponse(BaseModel):\n    id: int\n    name: str\n    email: str\n    role: Optional[str] = None\n\ndef test_user_schema():\n    resp = requests.get('/api/users/1')\n    user = UserResponse(**resp.json())  # бросит ValidationError если схема не совпадает\n    assert user.id > 0\n\nНа собесе: Pydantic даёт автоматическую документацию схемы и понятные ошибки.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Pydantic в тестах: `class UserResponse(BaseModel): id: int; name: str; email: str`. `UserResponse(**response.json())` — валидирует и типизирует ответ одной строкой."
+    },
+    {
+      "id": "t029",
+      "topic": "algorithms",
+      "question": "Что такое Two Pointers? Когда применять?",
+      "answer": "Two Pointers — техника с двумя указателями (индексами), движущимися навстречу или в одном направлении. Применять при:\n- Работе с отсортированными массивами\n- Поиск пары с нужной суммой\n- Удаление дубликатов in-place\n\nПример — Two Sum в отсортированном массиве:\nleft, right = 0, len(arr) - 1\nwhile left < right:\n    s = arr[left] + arr[right]\n    if s == target: return (left, right)\n    elif s < target: left += 1\n    else: right -= 1\n\nСложность: O(n) вместо O(n²) для brute force.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: GIL объясняет почему `threading` не ускоряет CPU-bound тест-генерацию. `asyncio` + `httpx.AsyncClient` для конкурентных API запросов без GIL ограничений."
+    },
+    {
+      "id": "t030",
+      "topic": "algorithms",
+      "question": "Что такое Sliding Window? Приведи пример задачи.",
+      "answer": "Sliding Window — окно фиксированного или переменного размера, скользящее по массиву/строке. Избегает O(n²) вложенных циклов.\n\nПример — максимальная сумма подмассива длины k:\ndef max_sum_subarray(arr: list[int], k: int) -> int:\n    window = sum(arr[:k])\n    max_sum = window\n    for i in range(k, len(arr)):\n        window += arr[i] - arr[i - k]\n        max_sum = max(max_sum, window)\n    return max_sum\n\nO(n) вместо O(n*k). Применяй когда нужны подстроки/подмассивы заданной длины.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `def get_default_headers(extra={})` — ❌ баг! Все тесты делят один словарь. Правильно: `def get_default_headers(extra=None): extra = extra or {}`. Частая ошибка в фикстурах."
+    },
+    {
+      "id": "t031",
+      "topic": "algorithms",
+      "question": "Что такое HashMap-подход (Counter/dict) для решения алгоритмических задач?",
+      "answer": "HashMap (dict/Counter) позволяет снизить сложность с O(n²) до O(n) за счёт O(1) lookup.\n\nТипичные паттерны:\n1. Частотный счётчик: Counter(s1) == Counter(s2) → анаграмма O(n)\n2. Seen set: if x in seen → O(1) проверка дубликатов\n3. Complement lookup: if (target - x) in seen → Two Sum O(n)\n\nПример Two Sum:\ndef two_sum(nums, target):\n    seen = {}\n    for i, x in enumerate(nums):\n        if (target - x) in seen:\n            return [seen[target - x], i]\n        seen[x] = i",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `iter(response_pages)` для пагинированных API. `next(page_iterator)` для получения следующей страницы. Генератор страниц экономит память при больших объёмах."
+    },
+    {
+      "id": "t033",
+      "topic": "python_internals",
+      "question": "Что такое изменяемые (mutable) и неизменяемые (immutable) типы? Почему это важно для дефолтных аргументов?",
+      "answer": "Immutable: int, float, str, tuple, frozenset — нельзя изменить после создания.\nMutable: list, dict, set — можно изменить.\n\nКлассическая ловушка — mutable default argument:\ndef add_item(item, lst=[]):  # ❌ lst создаётся ОДИН раз!\n    lst.append(item)\n    return lst\n# Правильно:\ndef add_item(item, lst=None):\n    if lst is None: lst = []\n    lst.append(item)\n    return lst\n\nЭто одна из самых частых ошибок на собесе!",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `def generate_users(n: int): yield {'id': i, 'name': f'user{i}'} for i in range(n)` — генератор тест-данных без загрузки всех в память. Для нагрузочных тестов."
+    },
+    {
+      "id": "t034",
+      "topic": "python_internals",
+      "question": "Что такое итератор и итерируемый объект? В чём разница?",
+      "answer": "Iterable — объект с методом __iter__(), возвращающим итератор. Примеры: list, str, dict.\nIterator — объект с методами __iter__() и __next__(). Сохраняет состояние, возвращает следующий элемент или бросает StopIteration.\n\nfor x in lst: — Python вызывает iter(lst) → получает итератор, затем next() в цикле.\n\nПроверить: hasattr(obj, '__next__') → итератор. Итераторы одноразовые — после исчерпания пусты.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `pages = (client.get(f'/api/items?page={p}') for p in range(1, max_page+1))` — ленивый обход пагинации. `send = lambda p: (yield p); resp = yield from api_call()` в async."
+    },
+    {
+      "id": "t035",
+      "topic": "pytest",
+      "question": "Что такое conftest.py? Где его размещать?",
+      "answer": "conftest.py — специальный файл pytest, где определяются shared фикстуры, хуки и плагины. Pytest автоматически находит его — не нужен import.\n\nРазмещение: в папке с тестами или в корне проекта. Фикстуры из conftest.py доступны всем тестам в той же папке и подпапках.\n\nТипичное содержимое:\n- @pytest.fixture def db_client(): ...\n- @pytest.fixture def auth_token(): ...\n- def pytest_configure(config): ...\n\nНа собесе: conftest избегает дублирования фикстур между файлами.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `conftest.py` хранит `api_client`, `auth_token`, `base_url` фикстуры. Используется на уровне `tests/` для всего проекта или `tests/api/` для модуля."
+    },
+    {
+      "id": "t043",
+      "topic": "oop",
+      "question": "Что такое __enter__ и __exit__? Как написать свой контекстный менеджер?",
+      "answer": "**Context manager** — объект для управления ресурсами через `with`. Гарантирует освобождение ресурса даже при исключении.\n\n```python\nclass Timer:\n    \"\"\"Контекстный менеджер для измерения времени.\"\"\"\n\n    def __enter__(self):\n        import time\n        self._start = time.time()\n        return self  # доступен как 'as t'\n\n    def __exit__(self, exc_type, exc_val, exc_tb):\n        import time\n        self.elapsed = time.time() - self._start\n        print(f'Elapsed: {self.elapsed:.3f}s')\n        return False  # не подавлять исключения\n\nwith Timer() as t:\n    sum(range(10**6))\n# Elapsed: 0.023s\n```\n\n**Через @contextmanager (проще):**\n```python\nfrom contextlib import contextmanager\n\n@contextmanager\ndef timer():\n    import time\n    start = time.time()\n    try:\n        yield  # <- тут выполняется тело with\n    finally:\n        print(f'Elapsed: {time.time() - start:.3f}s')\n\nwith timer():\n    sum(range(10**6))\n```\n\n**`__exit__` аргументы:** exc_type, exc_val, exc_tb — информация об исключении (None если не было). Возврат True — подавить исключение.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `def assert_user(data: dict[str, Any]) -> None:` — типизированные хелперы. `Optional[str]` для необязательных полей ответа. Mypy в CI проверяет типы тестового кода."
+    },
+    {
+      "id": "t046",
+      "topic": "pytest",
+      "question": "Что такое pytest fixtures scope? Покажи примеры function, module, session.",
+      "answer": "**Scope** определяет время жизни фикстуры — как часто она создаётся.\n\n```python\nimport pytest\n\n# function (default) — новая для каждого теста\n@pytest.fixture\ndef db_connection():\n    conn = create_connection()\n    yield conn         # <- тело теста выполняется здесь\n    conn.close()       # teardown гарантирован\n\n# module — одна на весь файл тестов\n@pytest.fixture(scope='module')\ndef api_client():\n    client = create_client()\n    yield client\n    client.close()\n\n# session — одна на всю тестовую сессию\n@pytest.fixture(scope='session')\ndef auth_token():\n    return get_token()  # получаем один раз, используем везде\n```\n\n**Порядок teardown:** вложенные фикстуры очищаются в обратном порядке.\n\n**autouse=True** — применять автоматически ко всем тестам:\n```python\n@pytest.fixture(autouse=True)\ndef reset_db():\n    yield\n    db.rollback()  # после каждого теста\n```\n\n**На собесе:** `session` для дорогих операций (БД соединение, auth), `function` для изоляции тестов.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: Strategy — разные стратегии авторизации `BasicAuth`, `BearerAuth`, `ApiKeyAuth` с единым интерфейсом `authenticate(request)`. Переключение без изменения тест-кода."
+    },
+    {
+      "id": "t047",
+      "topic": "pytest",
+      "question": "Как тестировать исключения в pytest? Покажи pytest.raises с match.",
+      "answer": "**pytest.raises** — контекстный менеджер для проверки исключений.\n\n```python\nimport pytest\n\ndef divide(a: int, b: int) -> float:\n    if b == 0:\n        raise ValueError('Division by zero')\n    return a / b\n\n# Базовая проверка типа исключения\ndef test_divide_by_zero():\n    with pytest.raises(ValueError):\n        divide(1, 0)\n\n# Проверка сообщения через match (regex)\ndef test_divide_by_zero_message():\n    with pytest.raises(ValueError, match='Division by zero'):\n        divide(1, 0)\n\n# Доступ к исключению через excinfo\ndef test_exception_details():\n    with pytest.raises(ValueError) as excinfo:\n        divide(10, 0)\n    assert 'zero' in str(excinfo.value)\n    assert excinfo.type is ValueError\n\n# Параметризация исключений\n@pytest.mark.parametrize('a, b, exc', [\n    (1, 0, ValueError),\n    ('a', 1, TypeError),\n])\ndef test_divide_errors(a, b, exc):\n    with pytest.raises(exc):\n        divide(a, b)\n```\n\n**На собесе:** `match=` принимает regex-паттерн, ищет в строке исключения. Без `match` проверяется только тип.",
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `raise AssertionError(f'Schema mismatch') from original_error` — цепочка исключений сохраняет оригинальный traceback. Полезно в кастомных assert-хелперах."
+    },
+    {
+      "id": "t057",
+      "topic": "modules",
+      "priority": 2,
+      "question": "Что такое пакет в Python? Зачем нужен `__init__.py`?",
+      "answer": "**Пакет** — директория с файлом `__init__.py`, содержащая модули.\n\n```\nmypackage/\n├── __init__.py      # делает директорию пакетом\n├── utils.py\n├── models.py\n└── api/\n    ├── __init__.py\n    └── client.py\n```\n\n**`__init__.py`** — выполняется при импорте пакета. Может быть пустым или содержать:\n```python\n# mypackage/__init__.py\nfrom .utils import helper_func    # делает доступным как mypackage.helper_func\nfrom .models import User          # публичный API пакета\n\n__version__ = '1.0.0'\n__all__ = ['User', 'helper_func']  # что экспортируется при from pkg import *\n```\n\n**Импорт из пакета:**\n```python\nimport mypackage.utils\nfrom mypackage import User\nfrom mypackage.api.client import ApiClient\n```\n\n**Relative imports (внутри пакета):**\n```python\n# внутри mypackage/models.py\nfrom .utils import validate       # . = текущий пакет\nfrom ..shared import config       # .. = родительский пакет\n```\n\n**На собесе:** В Python 3.3+ можно создавать «namespace packages» без `__init__.py`, но явный `__init__.py` — лучшая практика.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `from tests.fixtures import api_client` — пакет фикстур. `__init__.py` экспортирует общие фикстуры. Структура: `tests/__init__.py`, `tests/fixtures/__init__.py`."
+    },
+    {
+      "id": "t058",
+      "topic": "files",
+      "priority": 2,
+      "question": "Как работать с CSV файлами в Python? Покажи чтение и запись.",
+      "answer": "**Модуль `csv`** — стандартная библиотека для работы с CSV:\n\n```python\nimport csv\n\n# Чтение как список строк\nwith open('data.csv', newline='', encoding='utf-8') as f:\n    reader = csv.reader(f)\n    header = next(reader)          # первая строка — заголовок\n    for row in reader:\n        print(row)                 # ['Alice', '30', 'Moscow']\n\n# Чтение как словарь (удобнее!)\nwith open('data.csv', newline='', encoding='utf-8') as f:\n    reader = csv.DictReader(f)\n    for row in reader:\n        print(row['name'], row['age'])  # {'name': 'Alice', 'age': '30'}\n\n# Запись\nwith open('output.csv', 'w', newline='', encoding='utf-8') as f:\n    writer = csv.writer(f)\n    writer.writerow(['name', 'age', 'city'])   # заголовок\n    writer.writerow(['Alice', 30, 'Moscow'])\n    writer.writerows([['Bob', 25, 'SPb'], ['Eve', 35, 'Kazan']])\n\n# Запись из словарей\nfields = ['name', 'age']\nwith open('output.csv', 'w', newline='', encoding='utf-8') as f:\n    writer = csv.DictWriter(f, fieldnames=fields)\n    writer.writeheader()\n    writer.writerow({'name': 'Alice', 'age': 30})\n```\n\n**Важно:** `newline=''` обязателен на Windows — иначе лишние пустые строки!\n**На собесе:** DictReader/DictWriter удобнее — явные имена полей вместо индексов.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `csv.DictReader` для загрузки тест-данных из CSV. `DictWriter` для записи результатов тестов. Часто используется в data-driven тестировании."
+    },
+    {
+      "id": "t059",
+      "topic": "files",
+      "priority": 2,
+      "question": "Что такое pathlib.Path? Чем лучше os.path?",
+      "answer": "**`pathlib.Path`** (Python 3.4+) — объектно-ориентированная работа с путями, удобнее `os.path`:\n\n```python\nfrom pathlib import Path\n\np = Path('/Users/alice/projects/app')\n\n# Навигация\np.parent          # Path('/Users/alice/projects')\np.name            # 'app'\np.stem            # 'app' (без расширения)\np.suffix          # '' (нет расширения)\n\n# Объединение путей (вместо os.path.join!)\nconfig = p / 'config' / 'settings.json'\n# Path('/Users/alice/projects/app/config/settings.json')\n\n# Проверки\nconfig.exists()         # True/False\nconfig.is_file()        # True/False\nconfig.is_dir()         # True/False\n\n# Чтение/запись напрямую\ntext = config.read_text(encoding='utf-8')\nconfig.write_text('content', encoding='utf-8')\n\n# Перебор файлов\nfor f in p.glob('**/*.py'):    # рекурсивный поиск .py файлов\n    print(f)\n\n# Создание директорий\n(p / 'logs').mkdir(parents=True, exist_ok=True)\n```\n\n**Сравнение с os.path:**\n```python\n# os.path — строки, громоздко\nimport os\npath = os.path.join(base, 'config', 'settings.json')\nos.path.exists(path)\n\n# pathlib — объект, читаемо\npath = base / 'config' / 'settings.json'\npath.exists()\n```\n\n**На собесе:** pathlib — современный стандарт. os.path знать тоже нужно (legacy код).",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `Path(__file__).parent / 'data'` — путь к тестовым данным. `Path('reports').mkdir(exist_ok=True)` — создание папки для Allure отчётов. Кроссплатформенно."
+    },
+    {
+      "id": "t060",
+      "topic": "datetime",
+      "priority": 2,
+      "question": "Как работать с датами в Python? datetime, timedelta, strftime.",
+      "answer": "**Модуль `datetime`** — стандартная работа с датами и временем:\n\n```python\nfrom datetime import datetime, date, timedelta\n\n# Текущее время\nnow = datetime.now()                          # datetime(2026, 3, 3, 17, 30, 0)\ntoday = date.today()                          # date(2026, 3, 3)\n\n# Создание\nbirthday = datetime(1995, 6, 15, 12, 0)\n\n# Форматирование → строка\nnow.strftime('%Y-%m-%d %H:%M:%S')    # '2026-03-03 17:30:00'\nnow.strftime('%d.%m.%Y')             # '03.03.2026'\n\n# Парсинг строки → datetime\ndt = datetime.strptime('2026-03-03', '%Y-%m-%d')\n# или современно:\ndt = datetime.fromisoformat('2026-03-03T17:30:00')\n\n# Арифметика через timedelta\ntomorrow = today + timedelta(days=1)\nweek_ago = today - timedelta(weeks=1)\ndiff = datetime.now() - birthday     # timedelta объект\nprint(diff.days)                      # количество дней\n\n# Сравнение\ndt1 = datetime(2026, 1, 1)\ndt2 = datetime(2026, 6, 1)\ndt1 < dt2   # True\n```\n\n**Форматные коды:** `%Y` год, `%m` месяц, `%d` день, `%H` часы, `%M` минуты, `%S` секунды.\n\n**На собесе:** `strftime` — дата в строку, `strptime` — строка в дату. Запомни: `f` = format, `p` = parse.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `datetime.now().strftime('%Y%m%d_%H%M%S')` — уникальные имена файлов для отчётов. `datetime.fromisoformat(api_date)` — парсинг дат из ответов API. `timedelta(days=7)` для проверки TTL."
+    },
+    {
+      "id": "t064",
+      "topic": "scope",
+      "priority": 2,
+      "question": "Что такое LEGB правило? Как работает область видимости в Python?",
+      "answer": "**LEGB** — порядок поиска имён в Python:\n- **L**ocal — локальная область (внутри функции)\n- **E**nclosing — объемлющая (для замыканий)\n- **G**lobal — уровень модуля\n- **B**uilt-in — встроенные (len, print, range...)\n\n```python\nx = 'global'           # G — global\n\ndef outer():\n    x = 'enclosing'    # E — enclosing для inner\n\n    def inner():\n        x = 'local'    # L — local\n        print(x)       # 'local'\n\n    inner()\n    print(x)           # 'enclosing'\n\nouter()\nprint(x)               # 'global'\n```\n\n**global** — изменить глобальную переменную из функции:\n```python\ncount = 0\ndef increment():\n    global count\n    count += 1   # без global — UnboundLocalError!\n```\n\n**nonlocal** — изменить переменную из объемлющей функции:\n```python\ndef outer():\n    n = 0\n    def inner():\n        nonlocal n\n        n += 1\n    return inner\n```\n\n**На собесе:** типичная ловушка — модификация переменной без `global`/`nonlocal`. Python читает переменную из ближайшей области, но **пишет** только в локальную.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `global BASE_URL` в конфигурационном модуле — антипаттерн! Лучше фикстура или env-переменные. `nonlocal count` в счётчике запросов внутри mock-фикстуры."
+    },
+    {
+      "id": "t065",
+      "topic": "oop",
+      "priority": 2,
+      "question": "Что такое абстрактный класс (ABC)? Когда использовать?",
+      "answer": "**ABC (Abstract Base Class)** — класс с абстрактными методами, которые обязаны реализовать подклассы.\n\n```python\nfrom abc import ABC, abstractmethod\n\nclass Shape(ABC):\n    @abstractmethod\n    def area(self) -> float:\n        \"\"\"Подкласс ОБЯЗАН реализовать этот метод.\"\"\"\n        ...\n\n    @abstractmethod\n    def perimeter(self) -> float: ...\n\n    def describe(self) -> str:          # обычный метод — можно унаследовать\n        return f'Area: {self.area()}'\n\nclass Circle(Shape):\n    def __init__(self, radius: float) -> None:\n        self.radius = radius\n\n    def area(self) -> float:\n        import math\n        return math.pi * self.radius ** 2\n\n    def perimeter(self) -> float:\n        import math\n        return 2 * math.pi * self.radius\n\n# Shape() — нельзя создать экземпляр абстрактного класса!\n# s = Shape()  # TypeError: Can't instantiate abstract class\n\nc = Circle(5)\nprint(c.area())      # 78.54\nprint(c.describe())  # Area: 78.54\n```\n\n**Когда использовать:**\n- Определить интерфейс для группы классов\n- Гарантировать что подклассы реализуют нужные методы\n- Вместо duck typing когда нужна строгость\n\n**На собесе:** ABC vs Protocol (typing) — ABC для наследования, Protocol для structural subtyping.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `class BaseApiClient(ABC): @abstractmethod def authenticate(self): ...` — интерфейс для разных auth-стратегий. `BearerClient(BaseApiClient)`, `ApiKeyClient(BaseApiClient)` — конкретные реализации."
+    },
+    {
+      "id": "t069",
+      "topic": "api_testing",
+      "priority": 2,
+      "difficulty": "medium",
+      "question": "Что такое Page Object для API (API Object Model)? Как организовать классы клиентов?",
+      "answer": "**API Object Model** — паттерн инкапсуляции HTTP вызовов в классы (по аналогии с Page Object для UI):\n\n```python\nimport requests\nfrom typing import Any\n\nclass BaseApiClient:\n    def __init__(self, base_url: str, token: str) -> None:\n        self._base_url = base_url\n        self._session = requests.Session()\n        self._session.headers.update({\n            'Authorization': f'Bearer {token}',\n            'Content-Type': 'application/json',\n        })\n\n    def get(self, endpoint: str, **kwargs) -> requests.Response:\n        return self._session.get(f'{self._base_url}{endpoint}', **kwargs)\n\n    def post(self, endpoint: str, json: Any = None, **kwargs) -> requests.Response:\n        return self._session.post(f'{self._base_url}{endpoint}', json=json, **kwargs)\n\nclass UserApiClient(BaseApiClient):\n    def get_user(self, user_id: int) -> requests.Response:\n        return self.get(f'/users/{user_id}')\n\n    def create_user(self, name: str, email: str) -> requests.Response:\n        return self.post('/users', json={'name': name, 'email': email})\n\n    def get_users(self, page: int = 1) -> requests.Response:\n        return self.get('/users', params={'page': page})\n\nclass OrderApiClient(BaseApiClient):\n    def create_order(self, user_id: int, items: list) -> requests.Response:\n        return self.post('/orders', json={'user_id': user_id, 'items': items})\n\n# conftest.py\n@pytest.fixture(scope='session')\ndef user_client(base_url, auth_token) -> UserApiClient:\n    return UserApiClient(base_url, auth_token)\n\n# test_users.py\ndef test_get_user(user_client):\n    resp = user_client.get_user(1)\n    assert resp.status_code == 200\n```\n\n**На собесе:** Спросят \"как организовать API тесты чтобы не дублировать код\". Ответ — API Object Model. Каждый сервис = класс. Тесты работают с методами, а не с сырыми URL.",
+      "qa_context": "API Object Model — стандарт в WB/Ozon тест-командах. Позволяет изменить URL/auth в одном месте. Тесты читаются как бизнес-логика: `user_client.create_user(...)` вместо `requests.post('/api/v2/users', ...)`."
+    },
+    {
+      "id": "t032",
+      "topic": "python_internals",
+      "question": "Что такое GIL (Global Interpreter Lock) в Python?",
+      "answer": "GIL — мьютекс в CPython, позволяющий только одному потоку выполнять Python-байткод в каждый момент времени. Следствия:\n- threading не даёт параллельности для CPU-задач\n- Для CPU-параллельности используй multiprocessing\n- Для I/O (сеть, файлы) threading и asyncio работают хорошо — GIL освобождается при I/O\n- PyPy, Jython не имеют GIL\n\nНа собесе: GIL не мешает asyncio, мешает CPU-bound threading.",
+      "difficulty": "hard",
+      "priority": 2,
+      "qa_context": "В тестах: `__len__` — `len(response_items)`, `__contains__` — `item_id in response_set`, `__eq__` — сравнение Response объектов в assert. Пишешь `ApiResponse` класс — реализуй dunder методы."
+    },
+    {
+      "id": "t042",
+      "topic": "oop",
+      "question": "Что такое __slots__ в Python? Когда использовать?",
+      "answer": "**`__slots__`** запрещает динамическое создание атрибутов и заменяет `__dict__` массивом фиксированных слотов.\n\n```python\nclass Point:\n    __slots__ = ('x', 'y')  # только эти атрибуты\n\n    def __init__(self, x: float, y: float) -> None:\n        self.x = x\n        self.y = y\n\np = Point(1, 2)\np.z = 3  # AttributeError: 'Point' object has no attribute 'z'\n```\n\n**Преимущества:**\n- Экономия памяти: ~40-50% на экземпляр (нет `__dict__`)\n- Немного быстрее доступ к атрибутам\n- Защита от опечаток в именах атрибутов\n\n**Ограничения:**\n- Нельзя добавлять новые атрибуты динамически\n- Наследование со слотами требует осторожности\n- Не работает с `__weakref__` по умолчанию\n\n**На собесе:** `__slots__` используют при создании миллионов мелких объектов (Point, Vector, Record) для оптимизации памяти.",
+      "difficulty": "hard",
+      "priority": 2,
+      "qa_context": "В тестах: `islice(all_test_cases, 10)` — взять только 10 из 1000 кейсов для smoke-теста. `groupby(sorted_cases, key=lambda x: x.priority)` — группировка по приоритету."
+    },
+    {
+      "id": "t048",
+      "topic": "python_internals",
+      "question": "Что такое Python Data Model? Какие dunder методы используются для операторов?",
+      "answer": "**Python Data Model** — набор dunder (double underscore) методов, позволяющих объектам работать с операторами и встроенными функциями.\n\n```python\nclass Vector:\n    def __init__(self, x: float, y: float) -> None:\n        self.x, self.y = x, y\n\n    # Арифметические операторы\n    def __add__(self, other: 'Vector') -> 'Vector':\n        return Vector(self.x + other.x, self.y + other.y)\n\n    def __mul__(self, scalar: float) -> 'Vector':\n        return Vector(self.x * scalar, self.y * scalar)\n\n    # Сравнение\n    def __eq__(self, other: object) -> bool:\n        return isinstance(other, Vector) and self.x == other.x and self.y == other.y\n\n    def __lt__(self, other: 'Vector') -> bool:\n        return abs(self) < abs(other)\n\n    # Встроенные функции\n    def __len__(self) -> int:\n        return 2\n\n    def __abs__(self) -> float:\n        return (self.x**2 + self.y**2) ** 0.5\n\n    def __repr__(self) -> str:\n        return f'Vector({self.x}, {self.y})'\n\n    # Итерация\n    def __iter__(self):\n        yield self.x\n        yield self.y\n\nv = Vector(3, 4)\nprint(abs(v))   # 5.0 — вызывает __abs__\nprint(len(v))   # 2   — вызывает __len__\nx, y = v        # распаковка через __iter__\n```\n\n**Таблица dunder методов:**\n| Оператор | Метод |\n|---|---|\n| `+` | `__add__` |\n| `*` | `__mul__` |\n| `==` | `__eq__` |\n| `<` | `__lt__` |\n| `in` | `__contains__` |\n| `[]` | `__getitem__` |\n| `len()` | `__len__` |\n| `str()` | `__str__` |",
+      "difficulty": "hard",
+      "priority": 2,
+      "qa_context": "В тестах: `class ApiValidationError(ValueError): def __init__(self, field, value): super().__init__(f'{field}={value!r}')` — специфичное исключение для ошибок валидации API."
+    },
+    {
+      "id": "t021",
+      "topic": "decorators",
+      "question": "Что такое декоратор в Python? Напиши простой декоратор.",
+      "answer": "Декоратор — функция, принимающая функцию и возвращающая функцию (или callable). Синтаксис @decorator — синтаксический сахар для func = decorator(func).\n\nПростой пример:\ndef timer(func):\n    import time\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        print(f'{func.__name__}: {time.time()-start:.3f}s')\n        return result\n    return wrapper\n\nfunctools.wraps нужен чтобы сохранить __name__ и __doc__ оригинальной функции.",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `@pytest.fixture`, `@pytest.mark.parametrize`, `@pytest.mark.skip` — все это декораторы! Понимание механизма = умение писать кастомные маркеры и фикстуры."
+    },
+    {
+      "id": "t036",
+      "topic": "collections",
+      "question": "Что такое collections.namedtuple? Чем отличается от обычного tuple и dataclass?",
+      "answer": "**namedtuple** — фабрика для создания подклассов tuple с именованными полями.\n\n```python\nfrom collections import namedtuple\n\nPoint = namedtuple('Point', ['x', 'y'])\np = Point(1, 2)\n\nprint(p.x, p.y)     # 1 2 — доступ по имени\nprint(p[0], p[1])   # 1 2 — доступ по индексу (как обычный tuple)\nprint(p._asdict())  # OrderedDict([('x', 1), ('y', 2)])\n\n# Замена полей (возвращает новый объект)\np2 = p._replace(x=10)\nprint(p2)  # Point(x=10, y=2)\n```\n\n**Сравнение:**\n| | tuple | namedtuple | dataclass |\n|---|---|---|---|\n| Изменяем | ❌ | ❌ | ✅ |\n| Поля по имени | ❌ | ✅ | ✅ |\n| Наследование | ✅ | ✅ | ✅ |\n| Память | низкая | низкая | средняя |\n\n**На собесе:** namedtuple = легковесная immutable структура данных для записей (координаты, точки, результаты).",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `Counter(status_codes)` — подсчёт статусов из batch API запросов. `Counter({'200': 95, '500': 5})` — распределение ответов при нагрузочном тесте."
+    },
+    {
+      "id": "t037",
+      "topic": "collections",
+      "question": "Что такое collections.deque? Когда использовать вместо list?",
+      "answer": "**deque** (double-ended queue) — двусторонняя очередь, оптимизированная для O(1) вставки/удаления с обоих концов.\n\n```python\nfrom collections import deque\n\nd = deque([1, 2, 3])\n\nd.append(4)       # добавить справа: [1, 2, 3, 4]\nd.appendleft(0)   # добавить слева:  [0, 1, 2, 3, 4]\nd.pop()           # удалить справа:  [0, 1, 2, 3]\nd.popleft()       # удалить слева:   [1, 2, 3]\n\nd.rotate(1)       # [3, 1, 2] — сдвиг вправо на 1\n\n# Ограниченный размер (скользящее окно)\nlast_10 = deque(maxlen=10)\nfor x in range(20):\n    last_10.append(x)\nprint(last_10)  # deque([10, 11, ..., 19], maxlen=10)\n```\n\n**Когда deque лучше list:**\n- `appendleft` / `popleft` — O(1) против O(n) у list\n- Скользящее окно (maxlen)\n- Реализация очереди (FIFO) или двусторонней очереди\n\n**list лучше:** случайный доступ по индексу `lst[i]` — O(1), у deque — O(n).",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `deque(maxlen=100)` — скользящее окно последних 100 response times для мониторинга latency. `appendleft(new_time)` — добавление нового замера."
+    },
+    {
+      "id": "t038",
+      "topic": "collections",
+      "question": "Что такое collections.Counter? Покажи типичные применения.",
+      "answer": "**Counter** — словарь для подсчёта hashable объектов. Ключи — элементы, значения — количество.\n\n```python\nfrom collections import Counter\n\n# Подсчёт символов\nc = Counter('mississippi')\nprint(c)  # Counter({'i': 4, 's': 4, 'p': 2, 'm': 1})\n\n# most_common(n) — топ N самых частых\nprint(c.most_common(2))  # [('i', 4), ('s', 4)]\n\n# Арифметика счётчиков\nc1 = Counter(a=3, b=1)\nc2 = Counter(a=1, b=2)\nprint(c1 + c2)   # Counter({'a': 4, 'b': 3})\nprint(c1 - c2)   # Counter({'a': 2}) — отрицательные отбрасываются\nprint(c1 & c2)   # Counter({'a': 1, 'b': 1}) — минимум\nprint(c1 | c2)   # Counter({'a': 3, 'b': 2}) — максимум\n\n# Анаграмма через Counter\nCounter('anagram') == Counter('nagaram')  # True — O(n)\n```\n\n**На собесе:** Counter — первый выбор для задач на частоту, анаграммы, топ-N элементов.",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `TestCase = namedtuple('TestCase', ['endpoint', 'method', 'expected_status'])` — читаемые параметры для `@pytest.mark.parametrize` вместо tuple."
+    },
+    {
+      "id": "t039",
+      "topic": "functools",
+      "question": "Что такое functools.lru_cache? Когда применять?",
+      "answer": "**lru_cache** (Least Recently Used cache) — декоратор для мемоизации результатов функции.\n\n```python\nfrom functools import lru_cache\n\n@lru_cache(maxsize=128)\ndef fibonacci(n: int) -> int:\n    if n < 2:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n\n# Без кэша: O(2^n), с кэшем: O(n)\nprint(fibonacci(30))  # мгновенно\n\n# Статистика кэша\nprint(fibonacci.cache_info())\n# CacheInfo(hits=28, misses=31, maxsize=128, currsize=31)\n\n# Очистить кэш\nfibonacci.cache_clear()\n```\n\n**Правила:**\n- Аргументы функции должны быть hashable (нельзя list, dict)\n- `maxsize=None` → `@cache` (Python 3.9+) — неограниченный кэш\n- Для методов класса: используй `@cached_property` вместо lru_cache\n\n**На собесе:** lru_cache = готовая мемоизация за одну строку. Типично для рекурсивных задач.",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `@lru_cache(maxsize=1)` для кэширования auth-токена. `@lru_cache` на методе получения конфига — один запрос к env на всю сессию тестов."
+    },
+    {
+      "id": "t040",
+      "topic": "functools",
+      "question": "Что такое functools.partial? Зачем нужен?",
+      "answer": "**partial** — создаёт новую функцию с частично заполненными аргументами.\n\n```python\nfrom functools import partial\n\ndef power(base: int, exp: int) -> int:\n    return base ** exp\n\nsquare = partial(power, exp=2)\ncube   = partial(power, exp=3)\n\nprint(square(4))  # 16\nprint(cube(3))    # 27\n\n# Практический пример — сортировка\nfrom functools import partial\ndata = [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}]\n\nget_field = partial(dict.get, key='age')  # ключ заранее фиксирован\ndata.sort(key=lambda d: d.get('age'))     # обычно так\n\n# Создание специализированных принтеров\nprint_error  = partial(print, '[ERROR]', end='\\n', file=__import__('sys').stderr)\nprint_warn   = partial(print, '[WARN]')\n```\n\n**Разница от lambda:**\n- `partial` — явная документация, `.__name__` сохраняется\n- `lambda` — анонимна, но гибче для сложных выражений",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `send_request = partial(client.post, '/api/orders', headers=auth_headers)` — фиксируем общие параметры, меняем только body. Удобно для серии тестов одного эндпоинта."
+    },
+    {
+      "id": "t041",
+      "topic": "itertools",
+      "question": "Что такое itertools? Назови 5 самых полезных функций с примерами.",
+      "answer": "**itertools** — стандартная библиотека для эффективной работы с итераторами (ленивые вычисления).\n\n```python\nimport itertools\n\n# 1. chain — объединить итерируемые\nlist(itertools.chain([1, 2], [3, 4], [5]))  # [1, 2, 3, 4, 5]\n\n# 2. islice — срез итератора (без материализации)\ngen = (x**2 for x in range(10**9))\nlist(itertools.islice(gen, 5))  # [0, 1, 4, 9, 16]\n\n# 3. groupby — группировка последовательных элементов\ndata = [('a', 1), ('a', 2), ('b', 3), ('b', 4)]\nfor key, group in itertools.groupby(data, key=lambda x: x[0]):\n    print(key, list(group))\n# a [('a', 1), ('a', 2)]\n# b [('b', 3), ('b', 4)]\n\n# 4. combinations / permutations\nlist(itertools.combinations('ABC', 2))    # [('A','B'),('A','C'),('B','C')]\nlist(itertools.permutations('AB', 2))     # [('A','B'),('B','A')]\n\n# 5. zip_longest — zip с fillvalue\nlist(itertools.zip_longest('ABC', 'xy', fillvalue='-'))\n# [('A','x'),('B','y'),('C','-')]\n```\n\n**Важно:** groupby группирует только **последовательные** одинаковые ключи → перед использованием часто нужна сортировка.",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `chain(valid_users, invalid_users)` для параметризации. `combinations(endpoints, 2)` — попарное тестирование взаимодействий. `product(methods, endpoints)` — матрица тестов."
+    },
+    {
+      "id": "t044",
+      "topic": "typing",
+      "question": "Какие типы из модуля typing используются чаще всего? Что нового в Python 3.10+?",
+      "answer": "**Основные типы из typing:**\n\n```python\nfrom typing import Optional, Union, Any, Callable, TypeVar\n\n# Optional[X] = Union[X, None]\ndef find(name: str) -> Optional[str]:\n    return name if name else None\n\n# Union — несколько типов\ndef parse(val: Union[str, int]) -> str:\n    return str(val)\n\n# Callable[[args], return]\ndef apply(func: Callable[[int], int], x: int) -> int:\n    return func(x)\n\n# TypeVar — дженерики\nT = TypeVar('T')\ndef first(items: list[T]) -> T:\n    return items[0]\n```\n\n**Python 3.10+ синтаксис (без import):**\n```python\n# Вместо Optional[str]\ndef find(name: str) -> str | None: ...\n\n# Вместо Union[str, int]\ndef parse(val: str | int) -> str: ...\n\n# list, dict, tuple напрямую (не из typing!)\ndef process(items: list[int]) -> dict[str, int]: ...\n```\n\n**На собесе:** с Python 3.10+ `X | None` вместо `Optional[X]`, `list[int]` вместо `List[int]` из typing.",
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `Union[SuccessResponse, ErrorResponse]` — тип возврата API-клиента. `TypeVar('T', bound=BaseModel)` для generic фикстур."
+    },
+    {
+      "id": "t061",
+      "topic": "pattern_matching",
+      "priority": 3,
+      "question": "Что такое match/case в Python 3.10+? Чем отличается от if/elif?",
+      "answer": "**`match/case`** (Python 3.10+) — структурное сопоставление с шаблоном, мощнее switch/case из других языков:\n\n```python\n# Базовый пример — как switch\ndef http_status(status: int) -> str:\n    match status:\n        case 200: return 'OK'\n        case 404: return 'Not Found'\n        case 500: return 'Server Error'\n        case _:   return 'Unknown'   # default\n\n# Несколько значений в одном case\nmatch lang:\n    case 'en' | 'american english' | 'british english':\n        return 'English'\n    case 'ru' | 'russian':\n        return 'Russian'\n\n# Деструктуризация tuple (главная сила!)\nmatch point:\n    case (0, 0): print('Origin')\n    case (x, 0): print(f'On X axis at {x}')\n    case (0, y): print(f'On Y axis at {y}')\n    case (x, y): print(f'Point({x}, {y})')\n\n# Деструктуризация словаря\nmatch command:\n    case {'action': 'buy', 'item': item}:\n        buy(item)\n    case {'action': 'sell', 'item': item, 'price': price}:\n        sell(item, price)\n\n# Guards (условия)\nmatch number:\n    case n if n < 0: print('negative')\n    case n if n > 0: print('positive')\n    case 0:          print('zero')\n```\n\n**На собесе:** match/case особенно полезен при разборе API ответов, команд, event-driven логики. Это не просто switch — это **структурное сопоставление**.",
+      "difficulty": "medium",
+      "qa_context": "В тестах: `match http_method: case 'GET': ... case 'POST': ...` — роутинг в mock-сервере или тест-хелпере. Чище чем if/elif для 5+ случаев."
+    },
+    {
+      "id": "t073",
+      "topic": "pytest",
+      "priority": 3,
+      "difficulty": "medium",
+      "question": "Allure report в pytest: @allure.step, allure.attach, allure.title. Как интегрировать в API тесты?",
+      "answer": "**Установка:**\n```bash\npip install allure-pytest\npytest --alluredir=allure-results\nallure serve allure-results\n```\n\n**Основные декораторы:**\n```python\nimport allure\n\n@allure.title('Создание пользователя с валидными данными')\n@allure.description('POST /users — happy path')\n@allure.severity(allure.severity_level.CRITICAL)\ndef test_create_user(api_client):\n    with allure.step('Подготовить данные пользователя'):\n        payload = {'name': 'Alice', 'email': 'alice@example.com'}\n\n    with allure.step('Отправить POST /users'):\n        resp = api_client.post('/users', json=payload)\n\n    with allure.step('Проверить ответ'):\n        assert resp.status_code == 201\n        user_id = resp.json()['id']\n\n    with allure.step(f'Проверить что пользователь {user_id} существует'):\n        get_resp = api_client.get(f'/users/{user_id}')\n        assert get_resp.status_code == 200\n```\n\n**Прикрепление артефактов:**\n```python\n# Прикрепить тело запроса/ответа\nallure.attach(\n    body=resp.text,\n    name='Response Body',\n    attachment_type=allure.attachment_type.JSON\n)\n\n# В фикстуре — логировать все запросы\n@pytest.fixture(autouse=True)\ndef log_response(request):\n    yield\n    # После теста — если упал\n    if request.node.rep_call.failed:\n        allure.attach(last_response.text, 'Last Response', allure.attachment_type.JSON)\n```\n\n**На собесе:** Allure — стандарт в крупных компаниях. Знать: `@allure.step`, `@allure.severity`, `allure.attach`. `autouse=True` фикстура для автоматического логирования ответов.",
+      "qa_context": "Allure report — обязательный инструмент в WB/Ozon QA командах. `@allure.step` превращает тест в читаемую документацию. `allure.attach(resp.text)` — ключевой паттерн для отладки упавших тестов в CI."
+    },
+    {
+      "id": "t022",
+      "topic": "decorators",
+      "question": "Что такое декоратор с параметрами? Как его написать?",
+      "answer": "Декоратор с параметрами — это фабрика декораторов (три уровня вложенности):\n\ndef repeat(n: int):\n    def decorator(func):\n        from functools import wraps\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            for _ in range(n):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef say_hello(): print('hello')\n\nЗапоминалка: чем больше параметров — тем больше уровней вложенности.",
+      "difficulty": "hard",
+      "priority": 3,
+      "qa_context": "В тестах: `@retry(times=3, delay=1.0)` для нестабильных API. `@allure.step('Создать заказ')` — декоратор с параметром для Allure-отчётов. `@pytest.fixture(scope='session')`."
+    },
+    {
+      "id": "t023",
+      "topic": "async",
+      "question": "Что такое async/await в Python? Когда использовать?",
+      "answer": "async def создаёт корутину — функцию, которую можно приостановить. await приостанавливает выполнение до получения результата без блокировки потока.\n\nasyncio.run() — точка входа для async кода.\nДля чего: I/O операции (сеть, файлы, БД) — не CPU. При CPU задачах используй multiprocessing.\n\nКлючевая разница: threading — параллельность через OS-потоки (GIL мешает для CPU). asyncio — кооперативная многозадачность в одном потоке, переключение при await.",
+      "difficulty": "hard",
+      "priority": 3,
+      "qa_context": "В тестах: `O(n)` поиск в списке тест-данных. `Counter(response_ids)` вместо nested loop для поиска дубликатов в ответе API. Важно при 1000+ тест-кейсах."
+    },
+    {
+      "id": "t024",
+      "topic": "async",
+      "question": "Что такое asyncio.gather() и asyncio.create_task()?",
+      "answer": "asyncio.gather(*coros) — запускает несколько корутин конкурентно и ждёт все. Возвращает список результатов.\n\nasyncio.create_task(coro) — планирует корутину для выполнения без ожидания (fire-and-forget). Возвращает Task.\n\nРазница: gather — блокирует до завершения всех. create_task — не блокирует, выполнение в фоне.\n\nПример: asyncio.gather(fetch(url1), fetch(url2)) — параллельные HTTP запросы.",
+      "difficulty": "hard",
+      "priority": 3,
+      "qa_context": "В тестах: Two Pointers для проверки отсортированности ответа `for i in range(len(items)-1): assert items[i]['price'] <= items[i+1]['price']`. Sliding Window для batch API."
+    },
+    {
+      "id": "t049",
+      "topic": "patterns",
+      "question": "Что такое паттерн Singleton в Python? Как реализовать?",
+      "answer": "**Singleton** — класс с единственным экземпляром.\n\n**Вариант 1 — через __new__:**\n```python\nclass Singleton:\n    _instance: 'Singleton | None' = None\n\n    def __new__(cls) -> 'Singleton':\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\na = Singleton()\nb = Singleton()\nprint(a is b)  # True\n```\n\n**Вариант 2 — через декоратор:**\n```python\ndef singleton(cls):\n    instances = {}\n    def get_instance(*args, **kwargs):\n        if cls not in instances:\n            instances[cls] = cls(*args, **kwargs)\n        return instances[cls]\n    return get_instance\n\n@singleton\nclass Config:\n    def __init__(self):\n        self.debug = False\n```\n\n**Вариант 3 — через модуль (питонический):**\n```python\n# config.py — модули в Python сами по себе синглтоны\nDEBUG = False\nDB_URL = 'sqlite:///app.db'\n```\n\n**На собесе:** чаще всего достаточно модуля. __new__ используют при наследовании или тестировании.",
+      "difficulty": "hard",
+      "priority": 3,
+      "qa_context": "В тестах: `@pytest.mark.smoke`, `@pytest.mark.regression` — кастомные маркеры. Запуск: `pytest -m smoke`. В `pytest.ini`: `markers = smoke: smoke tests`. Фильтрация в CI."
+    },
+    {
+      "id": "t050",
+      "topic": "patterns",
+      "question": "Что такое паттерн Strategy в Python? Как реализовать через функции?",
+      "answer": "**Strategy** — семейство алгоритмов, инкапсулированных и взаимозаменяемых.\n\n**Классический вариант (через классы):**\n```python\nfrom abc import ABC, abstractmethod\n\nclass SortStrategy(ABC):\n    @abstractmethod\n    def sort(self, data: list) -> list: ...\n\nclass BubbleSort(SortStrategy):\n    def sort(self, data: list) -> list:\n        # bubble sort...\n        return sorted(data)\n\nclass QuickSort(SortStrategy):\n    def sort(self, data: list) -> list:\n        return sorted(data)  # упрощено\n\nclass Sorter:\n    def __init__(self, strategy: SortStrategy) -> None:\n        self._strategy = strategy\n\n    def sort(self, data: list) -> list:\n        return self._strategy.sort(data)\n```\n\n**Питонический вариант (через callable):**\n```python\nfrom typing import Callable\n\ndef process(\n    data: list[int],\n    strategy: Callable[[list[int]], list[int]]\n) -> list[int]:\n    return strategy(data)\n\n# Стратегии — просто функции\nprocess([3,1,2], sorted)\nprocess([3,1,2], lambda x: sorted(x, reverse=True))\n```\n\n**На собесе:** в Python функции — first-class objects, Strategy часто просто `Callable` аргумент.",
+      "difficulty": "hard",
+      "priority": 3,
+      "qa_context": "В тестах: `@pytest.fixture(scope='session')` — один запрос к API для получения токена. `scope='module'` — одна БД для модуля тестов. Неправильный scope = медленные тесты."
+    },
+    {
+      "id": "t062",
+      "topic": "pattern_matching",
+      "priority": 3,
+      "question": "Как match/case работает с классами и dataclasses?",
+      "answer": "**Сопоставление с классами** — самое мощное применение match:\n\n```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass Point:\n    x: float\n    y: float\n\n@dataclass\nclass Circle:\n    center: Point\n    radius: float\n\n@dataclass\nclass Rectangle:\n    top_left: Point\n    bottom_right: Point\n\ndef describe_shape(shape):\n    match shape:\n        case Circle(center=Point(x=0, y=0), radius=r):\n            return f'Circle at origin, r={r}'\n        case Circle(center=Point(x=x, y=y), radius=r):\n            return f'Circle at ({x},{y}), r={r}'\n        case Rectangle(top_left=Point(x=x1), bottom_right=Point(x=x2)):\n            width = x2 - x1\n            return f'Rectangle width={width}'\n        case _:\n            return 'Unknown shape'\n```\n\n**AS-паттерн** — захватить весь объект И его части:\n```python\nmatch command.split():\n    case ['go', direction] as cmd:\n        print(f'Full command: {cmd}, direction: {direction}')\n    case ['stop']:\n        print('Stopping')\n```\n\n**На собесе:** match с dataclasses — элегантная замена длинным `isinstance()` цепочкам. Демонстрирует знание современного Python.",
+      "difficulty": "hard",
+      "qa_context": "В тестах: `match api_response: case {'status': 'ok', 'data': data}: assert_data(data) case {'status': 'error', 'message': msg}: ...` — деструктуризация JSON-ответа."
+    }
+  ],
+  "coding": [
+    {
+      "id": "c001",
+      "topic": "list",
+      "difficulty": "easy",
+      "description": "Удали дубликаты из списка, сохранив порядок первого появления элементов.",
+      "starter_code": "def remove_duplicates(items: list) -> list:\n    # Подсказка: используй set для отслеживания виденных элементов\n    pass",
+      "solution": "def remove_duplicates(items: list) -> list:\n    seen: set = set()\n    result: list = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result",
+      "hints": [
+        "set() не сохраняет порядок — нельзя просто list(set(items))",
+        "Используй отдельный set для O(1) проверки уже виденных элементов",
+        "Итерируйся по items, добавляй в result только если not in seen"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c002",
+      "topic": "list",
+      "difficulty": "easy",
+      "description": "Найди второй по величине уникальный элемент в списке. Верни None если невозможно.",
+      "starter_code": "def second_max(numbers: list[int]) -> int | None:\n    # Edge-кейсы: пустой список, все одинаковые\n    pass",
+      "solution": "def second_max(numbers: list[int]) -> int | None:\n    unique = sorted(set(numbers), reverse=True)\n    return unique[1] if len(unique) >= 2 else None",
+      "hints": [
+        "Сначала сделай уникальные элементы через set()",
+        "Отсортируй по убыванию",
+        "Проверь что уникальных элементов минимум 2"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c003",
+      "topic": "dict",
+      "difficulty": "easy",
+      "description": "Подсчитай частоту каждого символа в строке. Верни словарь {символ: количество}.",
+      "starter_code": "def char_frequency(s: str) -> dict[str, int]:\n    # Не используй Counter\n    pass",
+      "solution": "def char_frequency(s: str) -> dict[str, int]:\n    freq: dict[str, int] = {}\n    for char in s:\n        freq[char] = freq.get(char, 0) + 1\n    return freq",
+      "hints": [
+        "dict.get(key, 0) — вернёт 0 если ключа нет, без KeyError",
+        "Итерируйся по символам строки",
+        "freq[char] = freq.get(char, 0) + 1"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c004",
+      "topic": "comprehensions",
+      "difficulty": "easy",
+      "description": "Напиши функцию, возвращающую квадраты только чётных чисел из списка.",
+      "starter_code": "def even_squares(numbers: list[int]) -> list[int]:\n    # Используй list comprehension с условием\n    pass",
+      "solution": "def even_squares(numbers: list[int]) -> list[int]:\n    return [x ** 2 for x in numbers if x % 2 == 0]",
+      "hints": [
+        "List comprehension: [выражение for x in items if условие]",
+        "Условие чётности: x % 2 == 0",
+        "Возведение в квадрат: x ** 2"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c005",
+      "topic": "strings",
+      "difficulty": "easy",
+      "description": "Разбери строку '10,20,abc,30' в список целых чисел, пропуская невалидные значения.",
+      "starter_code": "def parse_numbers(s: str) -> list[int]:\n    # Используй try/except для обработки ValueError\n    pass",
+      "solution": "def parse_numbers(s: str) -> list[int]:\n    result: list[int] = []\n    for part in s.split(','):\n        try:\n            result.append(int(part.strip()))\n        except ValueError:\n            pass\n    return result",
+      "hints": [
+        "Сначала split(',') для разбивки по запятой",
+        "strip() для удаления пробелов у каждого элемента",
+        "try/except ValueError при int() конвертации"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c006",
+      "topic": "set",
+      "difficulty": "easy",
+      "description": "Определи, являются ли две строки анаграммами (содержат одни и те же символы в любом порядке).",
+      "starter_code": "def is_anagram(s1: str, s2: str) -> bool:\n    # Подумай о регистре и пробелах\n    pass",
+      "solution": "def is_anagram(s1: str, s2: str) -> bool:\n    return sorted(s1.lower()) == sorted(s2.lower())",
+      "hints": [
+        "Анаграмма — одинаковые символы в разном порядке",
+        "sorted() строки даст список символов в алфавитном порядке",
+        "Приведи оба к lower() для регистронезависимости"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c024",
+      "topic": "functions",
+      "priority": 1,
+      "difficulty": "easy",
+      "description": "Напиши функцию make_multiplier(n), которая возвращает функцию умножения на n. Пример: double = make_multiplier(2); double(5) → 10. Используй замыкание.",
+      "starter_code": "def make_multiplier(n: int):\n    # Возвращает функцию, которая умножает аргумент на n\n    pass\n\n# Проверь:\n# double = make_multiplier(2)\n# print(double(5))   # 10\n# print(double(10))  # 20",
+      "solution": "def make_multiplier(n: int):\n    def multiplier(m: int) -> int:\n        return n * m\n    return multiplier\n\n# Или через lambda:\ndef make_multiplier_lambda(n: int):\n    return lambda m: n * m",
+      "hints": [
+        "Внешняя функция принимает n, возвращает внутреннюю функцию",
+        "Внутренняя функция использует n из лексического окружения",
+        "Можно вернуть lambda: lambda m: n * m"
+      ]
+    },
+    {
+      "id": "c025",
+      "topic": "functions",
+      "priority": 1,
+      "difficulty": "easy",
+      "description": "Напиши функцию sum_all(*numbers), которая принимает произвольное количество чисел и возвращает их сумму. Без использования встроенного sum().",
+      "starter_code": "def sum_all(*numbers: int | float) -> int | float:\n    # numbers — это tuple внутри функции\n    pass",
+      "solution": "def sum_all(*numbers: int | float) -> int | float:\n    result = 0\n    for n in numbers:\n        result += n\n    return result\n\n# Альтернатива с reduce:\nfrom functools import reduce\ndef sum_all_v2(*numbers: int | float) -> int | float:\n    return reduce(lambda acc, x: acc + x, numbers, 0)",
+      "hints": [
+        "*numbers — это tuple, можно итерировать",
+        "Пройдись циклом for n in numbers и накапливай сумму",
+        "Для пустого вызова sum_all() result должен быть 0"
+      ]
+    },
+    {
+      "id": "c026",
+      "topic": "files",
+      "priority": 1,
+      "difficulty": "easy",
+      "description": "Напиши функцию read_lines(filepath), которая читает файл и возвращает список строк без символов переноса. Обработай случай если файл не существует — вернуть [].",
+      "starter_code": "from pathlib import Path\n\ndef read_lines(filepath: str) -> list[str]:\n    # Используй with open и обработай FileNotFoundError\n    pass",
+      "solution": "from pathlib import Path\n\ndef read_lines(filepath: str) -> list[str]:\n    try:\n        with open(filepath, 'r', encoding='utf-8') as f:\n            return [line.rstrip('\\n') for line in f]\n    except FileNotFoundError:\n        return []\n\n# Через pathlib:\ndef read_lines_pathlib(filepath: str) -> list[str]:\n    p = Path(filepath)\n    if not p.exists():\n        return []\n    return p.read_text(encoding='utf-8').splitlines()",
+      "hints": [
+        "with open(filepath, 'r', encoding='utf-8') as f:",
+        "line.strip() или line.rstrip('\\n') убирает перенос строки",
+        "try/except FileNotFoundError для обработки отсутствующего файла"
+      ]
+    },
+    {
+      "id": "c031",
+      "topic": "pytest",
+      "priority": 1,
+      "difficulty": "easy",
+      "qa_context": "Фикстура `api_client` — это фундамент любого API тест-проекта. На собесе могут попросить написать conftest.py с нуля. `scope='session'` — один инстанс на всю сессию, `requests.Session` — переиспользует соединение и cookies.",
+      "description": "Напиши фикстуру `api_client` для conftest.py которая создаёт requests.Session с base_url из переменной окружения BASE_URL (default: http://localhost:8000) и заголовком Content-Type: application/json. scope='session'.",
+      "starter_code": "import os\nimport pytest\nimport requests\n\n# conftest.py\n\n@pytest.fixture(scope='session')\ndef api_client():\n    # Создай requests.Session\n    # Установи base_url из os.environ.get('BASE_URL', 'http://localhost:8000')\n    # Добавь заголовок Content-Type: application/json\n    # Верни session (можно использовать yield для teardown)\n    pass\n\n# Пример использования:\n# def test_health(api_client):\n#     resp = api_client.get(base_url + '/health')\n#     assert resp.status_code == 200\n",
+      "solution": "import os\nimport pytest\nimport requests\n\n\n@pytest.fixture(scope='session')\ndef base_url() -> str:\n    return os.environ.get('BASE_URL', 'http://localhost:8000')\n\n\n@pytest.fixture(scope='session')\ndef api_client(base_url: str) -> requests.Session:\n    session = requests.Session()\n    session.headers.update({\n        'Content-Type': 'application/json',\n        'Accept': 'application/json',\n    })\n    yield session\n    session.close()  # teardown — закрыть соединение\n\n# Или с auth токеном:\n@pytest.fixture(scope='session')\ndef auth_client(base_url: str) -> requests.Session:\n    session = requests.Session()\n    # Получаем токен один раз\n    resp = session.post(f'{base_url}/auth/login', json={\n        'username': os.environ['TEST_USER'],\n        'password': os.environ['TEST_PASSWORD'],\n    })\n    token = resp.json()['access_token']\n    session.headers.update({\n        'Authorization': f'Bearer {token}',\n        'Content-Type': 'application/json',\n    })\n    yield session\n    session.close()\n",
+      "hints": [
+        "requests.Session() — создаёт сессию с общими заголовками и cookies",
+        "session.headers.update({...}) — установить заголовки для всех запросов",
+        "yield session вместо return — позволяет добавить teardown (session.close())",
+        "scope='session' — один инстанс на всю pytest-сессию"
+      ]
+    },
+    {
+      "id": "c007",
+      "topic": "dict",
+      "difficulty": "medium",
+      "description": "Сгруппируй список словарей по значению заданного ключа. Пример: [{name: a, cat: X}, {name: b, cat: X}] → {X: [{...}, {...}]}",
+      "starter_code": "def group_by_key(items: list[dict], key: str) -> dict[str, list]:\n    pass",
+      "solution": "def group_by_key(items: list[dict], key: str) -> dict[str, list]:\n    result: dict[str, list] = {}\n    for item in items:\n        group = item.get(key, 'unknown')\n        result.setdefault(group, []).append(item)\n    return result",
+      "hints": [
+        "dict.setdefault(key, []) — создаёт пустой список если ключа нет",
+        "item.get(key, 'unknown') — безопасный доступ к ключу",
+        "Добавляй весь item в нужную группу"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c009",
+      "topic": "comprehensions",
+      "difficulty": "medium",
+      "description": "Создай dict comprehension: из списка строк сделай словарь {слово: длина_слова}, только для слов длиннее 3 символов.",
+      "starter_code": "def word_lengths(words: list[str]) -> dict[str, int]:\n    # Используй dict comprehension с условием\n    pass",
+      "solution": "def word_lengths(words: list[str]) -> dict[str, int]:\n    return {word: len(word) for word in words if len(word) > 3}",
+      "hints": [
+        "Dict comprehension: {key: value for item in items if условие}",
+        "key — само слово, value — len(word)",
+        "Условие: len(word) > 3"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c010",
+      "topic": "list",
+      "difficulty": "medium",
+      "description": "Разбей список на подсписки (чанки) по N элементов. Пример: [1,2,3,4,5], n=2 → [[1,2],[3,4],[5]]",
+      "starter_code": "def chunks(lst: list, n: int) -> list[list]:\n    pass",
+      "solution": "def chunks(lst: list, n: int) -> list[list]:\n    return [lst[i:i + n] for i in range(0, len(lst), n)]",
+      "hints": [
+        "range(0, len(lst), n) — шаг n даёт начальные индексы чанков",
+        "lst[i:i+n] — срез от i до i+n",
+        "List comprehension собирает всё вместе"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c032",
+      "topic": "pytest",
+      "priority": 1,
+      "difficulty": "medium",
+      "qa_context": "Параметризованный тест с моком — классическое задание на собесе. Проверяет знание `@patch`, `MagicMock` и `@pytest.mark.parametrize` одновременно. Показывает умение тестировать HTTP-клиентский код.",
+      "description": "Напиши параметризованный тест для функции get_user(user_id) которая делает GET запрос на /api/users/{id}. Проверь 3 сценария: 200 (существует), 404 (не найден), 500 (ошибка сервера). Используй @patch и MagicMock.",
+      "starter_code": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n# Тестируемая функция\ndef get_user(user_id: int) -> dict:\n    import requests\n    resp = requests.get(f'https://api.example.com/api/users/{user_id}')\n    if resp.status_code == 200:\n        return resp.json()\n    return {'error': resp.status_code}\n\n# Напиши параметризованный тест:\n@pytest.mark.parametrize('user_id,mock_status,mock_body,expected', [\n    # (user_id, status_code, response_body, expected_result)\n    # Happy path: 200\n    # Not found: 404\n    # Server error: 500\n])\ndef test_get_user(user_id, mock_status, mock_body, expected):\n    # Замокай requests.get\n    # Настрой mock.return_value\n    # Вызови get_user(user_id)\n    # Проверь результат\n    pass\n",
+      "solution": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n\ndef get_user(user_id: int) -> dict:\n    import requests\n    resp = requests.get(f'https://api.example.com/api/users/{user_id}')\n    if resp.status_code == 200:\n        return resp.json()\n    return {'error': resp.status_code}\n\n\n@pytest.mark.parametrize('user_id,mock_status,mock_body,expected', [\n    (1,      200, {'id': 1, 'name': 'Alice'},  {'id': 1, 'name': 'Alice'}),\n    (999,    404, {'detail': 'Not found'},     {'error': 404}),\n    (1,      500, {'detail': 'Server error'},  {'error': 500}),\n])\ndef test_get_user(user_id, mock_status, mock_body, expected):\n    mock_response = MagicMock()\n    mock_response.status_code = mock_status\n    mock_response.json.return_value = mock_body\n\n    with patch('requests.get', return_value=mock_response) as mock_get:\n        result = get_user(user_id)\n\n    assert result == expected\n    mock_get.assert_called_once_with(\n        f'https://api.example.com/api/users/{user_id}'\n    )\n",
+      "hints": [
+        "@pytest.mark.parametrize принимает строку с именами параметров и список tuple",
+        "MagicMock() — создаёт мок объект. mock_response.status_code = 200 — задать атрибут",
+        "mock_response.json.return_value = {...} — задать возвращаемое значение метода json()",
+        "with patch('requests.get', return_value=mock_response) as mock_get:",
+        "mock_get.assert_called_once_with(url) — проверить что запрос был сделан с правильным URL"
+      ]
+    },
+    {
+      "id": "c033",
+      "topic": "api_testing",
+      "priority": 1,
+      "difficulty": "medium",
+      "qa_context": "Хелпер `assert_response` — паттерн DRY для API тестов. Вместо дублирования 3+ assert в каждом тесте — один вызов. Показывает зрелость подхода к тест-дизайну на собесе.",
+      "description": "Напиши функцию-хелпер assert_response(resp, expected_status, required_keys=None) которая: 1) проверяет status_code, 2) проверяет что все required_keys есть в resp.json(), 3) возвращает resp.json() для дальнейшей работы. Добавь информативные сообщения об ошибках.",
+      "starter_code": "import requests\nfrom typing import Optional\n\ndef assert_response(\n    resp: requests.Response,\n    expected_status: int,\n    required_keys: Optional[list[str]] = None\n) -> dict:\n    \"\"\"\n    Универсальный хелпер для проверки API ответов.\n    Возвращает resp.json() для удобства чепочки вызовов.\n    \"\"\"\n    # 1. Проверить status_code с информативным сообщением\n    # (включи resp.text в сообщение об ошибке!)\n\n    # 2. Если required_keys передан — проверить что все ключи есть в json\n\n    # 3. Вернуть resp.json()\n    pass\n\n# Пример использования:\n# data = assert_response(resp, 200, ['id', 'name', 'email'])\n# assert data['id'] > 0\n",
+      "solution": "import requests\nfrom typing import Optional\n\n\ndef assert_response(\n    resp: requests.Response,\n    expected_status: int,\n    required_keys: Optional[list[str]] = None,\n) -> dict:\n    \"\"\"Универсальный хелпер для проверки API ответов.\"\"\"\n    # 1. Проверка статус-кода\n    assert resp.status_code == expected_status, (\n        f\"Expected status {expected_status}, got {resp.status_code}\\n\"\n        f\"URL: {resp.url}\\n\"\n        f\"Body: {resp.text[:500]}\"  # первые 500 символов\n    )\n\n    # 2. Парсинг JSON\n    try:\n        data = resp.json()\n    except ValueError as e:\n        raise AssertionError(f\"Response is not valid JSON: {resp.text}\") from e\n\n    # 3. Проверка обязательных ключей\n    if required_keys:\n        missing = set(required_keys) - set(data.keys())\n        assert not missing, (\n            f\"Missing required keys: {missing}\\n\"\n            f\"Actual keys: {list(data.keys())}\"\n        )\n\n    return data\n\n\n# Использование:\n# def test_create_user(api_client, base_url):\n#     resp = api_client.post(f'{base_url}/users', json={'name': 'Alice', 'email': 'a@b.com'})\n#     data = assert_response(resp, 201, ['id', 'name', 'email'])\n#     assert data['name'] == 'Alice'\n",
+      "hints": [
+        "assert resp.status_code == expected_status, f'...' — сообщение помогает при отладке",
+        "Включи resp.text в сообщение — это сразу покажет тело ошибочного ответа",
+        "set(required_keys) - set(data.keys()) — найти отсутствующие ключи",
+        "try/except ValueError при resp.json() — на случай не-JSON ответа"
+      ]
+    },
+    {
+      "id": "c034",
+      "topic": "api_testing",
+      "priority": 1,
+      "difficulty": "medium",
+      "qa_context": "Тест POST с проверкой тела запроса — частое задание на собесе. `mock_post.assert_called_once_with(url, json=payload)` — проверяет что тест-код отправил ПРАВИЛЬНЫЕ данные, не только получил правильный ответ.",
+      "description": "Напиши тест для функции create_order(user_id, items) которая делает POST /api/orders. Проверь что: 1) функция отправила правильный payload, 2) вернула id созданного заказа. Используй unittest.mock.patch.",
+      "starter_code": "from unittest.mock import patch, MagicMock\n\n# Тестируемая функция\ndef create_order(user_id: int, items: list[dict]) -> int:\n    import requests\n    resp = requests.post(\n        'https://api.example.com/api/orders',\n        json={'user_id': user_id, 'items': items}\n    )\n    resp.raise_for_status()\n    return resp.json()['order_id']\n\ndef test_create_order_sends_correct_payload():\n    # Замокай requests.post\n    # Настрой mock чтобы вернул {'order_id': 42} со статусом 201\n    # Вызови create_order(user_id=1, items=[{'sku': 'A1', 'qty': 2}])\n    # Проверь:\n    #   1. Вернула правильный order_id\n    #   2. Запрос был отправлен с правильным URL и телом\n    pass\n",
+      "solution": "from unittest.mock import patch, MagicMock\n\n\ndef create_order(user_id: int, items: list[dict]) -> int:\n    import requests\n    resp = requests.post(\n        'https://api.example.com/api/orders',\n        json={'user_id': user_id, 'items': items}\n    )\n    resp.raise_for_status()\n    return resp.json()['order_id']\n\n\ndef test_create_order_sends_correct_payload():\n    items = [{'sku': 'A1', 'qty': 2}, {'sku': 'B2', 'qty': 1}]\n\n    mock_response = MagicMock()\n    mock_response.status_code = 201\n    mock_response.json.return_value = {'order_id': 42}\n    mock_response.raise_for_status.return_value = None  # не бросает исключение\n\n    with patch('requests.post', return_value=mock_response) as mock_post:\n        order_id = create_order(user_id=1, items=items)\n\n    # Проверяем возвращаемое значение\n    assert order_id == 42\n\n    # Проверяем что был отправлен ПРАВИЛЬНЫЙ запрос\n    mock_post.assert_called_once_with(\n        'https://api.example.com/api/orders',\n        json={'user_id': 1, 'items': items}\n    )\n",
+      "hints": [
+        "mock_response.raise_for_status.return_value = None — чтобы метод не бросал исключение",
+        "mock_post.assert_called_once_with(url, json=payload) — ключевая проверка payload",
+        "Разделяй тесты: один тест = одна проверка. Тут: payload + return value вместе — допустимо",
+        "MagicMock автоматически создаёт атрибуты, но raise_for_status нужно настроить явно"
+      ]
+    },
+    {
+      "id": "c036",
+      "topic": "errors",
+      "priority": 1,
+      "difficulty": "medium",
+      "qa_context": "Тестирование 422 Unprocessable Entity — важный кейс для FastAPI/Django REST Framework. `@pytest.mark.parametrize` по boundary values — показывает зрелость тест-дизайна. Проверка тела ошибки (`detail`) обязательна!",
+      "description": "Напиши параметризованный тест для эндпоинта POST /users который проверяет 422 при невалидных данных. Тест-кейсы: пустое имя, слишком длинный email (>255 символов), отсутствие обязательного поля, неправильный тип. Используй @patch.",
+      "starter_code": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n# Функция-клиент\ndef create_user(payload: dict) -> tuple[int, dict]:\n    import requests\n    resp = requests.post('https://api.example.com/users', json=payload)\n    return resp.status_code, resp.json()\n\n# Параметризуй по невалидным payload-ам\n@pytest.mark.parametrize('invalid_payload,description', [\n    # (payload, описание что проверяем)\n    # 1. Пустое имя\n    # 2. Нет обязательного поля email\n    # 3. Слишком длинный email\n    # 4. Неправильный тип для age\n])\ndef test_create_user_validation_error(invalid_payload, description):\n    # Замокай requests.post чтобы возвращал 422\n    # Проверь status_code == 422\n    pass\n",
+      "solution": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n\ndef create_user(payload: dict) -> tuple[int, dict]:\n    import requests\n    resp = requests.post('https://api.example.com/users', json=payload)\n    return resp.status_code, resp.json()\n\n\n@pytest.mark.parametrize('invalid_payload,description', [\n    ({'name': '', 'email': 'a@b.com'},                      'empty name'),\n    ({'name': 'Alice'},                                      'missing email'),\n    ({'name': 'Alice', 'email': 'a' * 256 + '@b.com'},      'email too long'),\n    ({'name': 'Alice', 'email': 'a@b.com', 'age': 'abc'},   'invalid age type'),\n    ({'name': None, 'email': 'a@b.com'},                    'null name'),\n])\ndef test_create_user_validation_error(invalid_payload, description):\n    mock_response = MagicMock()\n    mock_response.status_code = 422\n    mock_response.json.return_value = {\n        'detail': [{'field': 'name', 'msg': 'validation error'}]\n    }\n\n    with patch('requests.post', return_value=mock_response):\n        status_code, body = create_user(invalid_payload)\n\n    assert status_code == 422, f\"Expected 422 for {description}, got {status_code}\"\n    assert 'detail' in body or 'error' in body, f\"No error detail in response: {body}\"\n\n\n# Тест без мока — для реального сервера:\n# @pytest.mark.parametrize(...)\n# def test_create_user_real_validation(api_client, base_url, invalid_payload, description):\n#     resp = api_client.post(f'{base_url}/users', json=invalid_payload)\n#     data = assert_response(resp, 422)\n#     assert 'detail' in data\n",
+      "hints": [
+        "Параметры для parametrize: invalid_payload (dict) + description (str для понятного имени теста)",
+        "'a' * 256 + '@b.com' — строка из 256 символов + домен = слишком длинный email",
+        "В сообщении assert указывай description — pytest покажет его при провале",
+        "Проверяй и status_code и наличие поля с описанием ошибки в теле"
+      ]
+    },
+    {
+      "id": "c012",
+      "topic": "strings",
+      "difficulty": "hard",
+      "description": "Напиши функцию, которая принимает строку с JSON-подобными данными 'key1=val1;key2=val2' и возвращает словарь.",
+      "starter_code": "def parse_key_value(s: str) -> dict[str, str]:\n    # Пример: 'name=Alice;age=30' → {'name': 'Alice', 'age': '30'}\n    pass",
+      "solution": "def parse_key_value(s: str) -> dict[str, str]:\n    if not s.strip():\n        return {}\n    result: dict[str, str] = {}\n    for pair in s.split(';'):\n        pair = pair.strip()\n        if '=' in pair:\n            key, _, value = pair.partition('=')\n            result[key.strip()] = value.strip()\n    return result",
+      "hints": [
+        "Сначала split(';') по парам",
+        "Для каждой пары partition('=') или split('=', 1)",
+        "Проверь что в паре есть '=' прежде чем разбивать",
+        "partition возвращает (before, sep, after) — безопаснее split"
+      ],
+      "priority": 1
+    },
+    {
+      "id": "c013",
+      "topic": "algorithms",
+      "difficulty": "easy",
+      "description": "[LeetCode #1 Two Sum] Дан список nums и число target. Верни индексы двух чисел, сумма которых равна target. Каждый элемент используется один раз. Гарантируется что решение существует.",
+      "starter_code": "def two_sum(nums: list[int], target: int) -> list[int]:\n    # Используй dict для O(n) решения\n    # Не делай O(n²) вложенный цикл\n    pass",
+      "solution": "def two_sum(nums: list[int], target: int) -> list[int]:\n    seen: dict[int, int] = {}\n    for i, x in enumerate(nums):\n        complement = target - x\n        if complement in seen:\n            return [seen[complement], i]\n        seen[x] = i\n    return []",
+      "hints": [
+        "Для каждого числа x ищем complement = target - x",
+        "Храни уже виденные числа в dict: {значение: индекс}",
+        "O(1) lookup в dict даёт нам O(n) общее решение"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c014",
+      "topic": "algorithms",
+      "difficulty": "easy",
+      "description": "[LeetCode #217 Contains Duplicate] Верни True если в списке есть хотя бы один дубликат, иначе False.",
+      "starter_code": "def contains_duplicate(nums: list[int]) -> bool:\n    pass",
+      "solution": "def contains_duplicate(nums: list[int]) -> bool:\n    return len(nums) != len(set(nums))",
+      "hints": [
+        "set() убирает дубликаты",
+        "Если len(set(nums)) < len(nums) — есть дубликаты",
+        "Однострочник: return len(nums) != len(set(nums))"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c015",
+      "topic": "algorithms",
+      "difficulty": "easy",
+      "description": "[LeetCode #242 Valid Anagram] Определи, является ли строка t анаграммой строки s (используются одни и те же буквы).",
+      "starter_code": "def is_anagram(s: str, t: str) -> bool:\n    # Оптимально через Counter или sorted\n    pass",
+      "solution": "from collections import Counter\n\ndef is_anagram(s: str, t: str) -> bool:\n    return Counter(s) == Counter(t)",
+      "hints": [
+        "Counter('anagram') даёт {'a':3, 'n':1, ...}",
+        "Два Counter равны если у них одинаковые символы с одинаковыми частотами",
+        "Альтернатива: sorted(s) == sorted(t) — проще, но O(n log n)"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c028",
+      "topic": "datetime",
+      "priority": 2,
+      "difficulty": "easy",
+      "description": "Напиши функцию days_between(date1_str, date2_str) -> int, которая принимает две строки в формате 'YYYY-MM-DD' и возвращает количество дней между ними (всегда положительное число).",
+      "starter_code": "def days_between(date1_str: str, date2_str: str) -> int:\n    # Используй datetime.strptime для парсинга\n    # timedelta.days для разницы\n    pass",
+      "solution": "from datetime import datetime\n\ndef days_between(date1_str: str, date2_str: str) -> int:\n    fmt = '%Y-%m-%d'\n    d1 = datetime.strptime(date1_str, fmt)\n    d2 = datetime.strptime(date2_str, fmt)\n    return abs((d2 - d1).days)",
+      "hints": [
+        "datetime.strptime(s, '%Y-%m-%d') — парсинг строки в datetime",
+        "Разность двух datetime объектов = timedelta",
+        "timedelta.days — количество дней, abs() для всегда положительного"
+      ]
+    },
+    {
+      "id": "c008",
+      "topic": "algorithms",
+      "difficulty": "medium",
+      "description": "Проверь, является ли строка палиндромом (читается одинаково слева направо и справа налево). Игнорируй регистр.",
+      "starter_code": "def is_palindrome(s: str) -> bool:\n    pass",
+      "solution": "def is_palindrome(s: str) -> bool:\n    cleaned = s.lower().replace(' ', '')\n    return cleaned == cleaned[::-1]",
+      "hints": [
+        "Приведи к lower() и убери пробелы",
+        "s[::-1] разворачивает строку",
+        "Сравни оригинал с развёрнутым"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c011",
+      "topic": "algorithms",
+      "difficulty": "medium",
+      "description": "Найди все дубликаты в списке и верни их список (без повторений в результате).",
+      "starter_code": "def find_duplicates(items: list) -> list:\n    pass",
+      "solution": "def find_duplicates(items: list) -> list:\n    seen: set = set()\n    duplicates: set = set()\n    for item in items:\n        if item in seen:\n            duplicates.add(item)\n        else:\n            seen.add(item)\n    return list(duplicates)",
+      "hints": [
+        "Нужно два set: seen и duplicates",
+        "Если элемент уже в seen — это дубликат",
+        "Возвращаем list(duplicates) без повторений"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c016",
+      "topic": "algorithms",
+      "difficulty": "medium",
+      "description": "[LeetCode #3 Longest Substring Without Repeating Characters] Найди длину самой длинной подстроки без повторяющихся символов.",
+      "starter_code": "def length_of_longest_substring(s: str) -> int:\n    # Используй sliding window + set\n    pass",
+      "solution": "def length_of_longest_substring(s: str) -> int:\n    window: set[str] = set()\n    left = 0\n    max_len = 0\n    for right in range(len(s)):\n        while s[right] in window:\n            window.remove(s[left])\n            left += 1\n        window.add(s[right])\n        max_len = max(max_len, right - left + 1)\n    return max_len",
+      "hints": [
+        "Техника Sliding Window: два указателя left и right",
+        "set хранит символы текущего окна",
+        "Если новый символ уже в set — сжимай окно слева",
+        "Длина окна: right - left + 1"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c017",
+      "topic": "algorithms",
+      "difficulty": "medium",
+      "description": "[LeetCode #49 Group Anagrams] Сгруппируй список строк по анаграммам. Пример: ['eat','tea','tan','ate','nat','bat'] → [['eat','tea','ate'],['tan','nat'],['bat']]",
+      "starter_code": "def group_anagrams(strs: list[str]) -> list[list[str]]:\n    # Подсказка: отсортированная строка — это ключ группы\n    pass",
+      "solution": "from collections import defaultdict\n\ndef group_anagrams(strs: list[str]) -> list[list[str]]:\n    groups: defaultdict[str, list[str]] = defaultdict(list)\n    for s in strs:\n        key = ''.join(sorted(s))\n        groups[key].append(s)\n    return list(groups.values())",
+      "hints": [
+        "Анаграммы имеют одинаковую отсортированную строку",
+        "sorted('eat') == sorted('tea') == sorted('ate') → 'aet'",
+        "defaultdict(list) группирует строки по ключу"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c018",
+      "topic": "api_testing",
+      "difficulty": "medium",
+      "description": "Напиши pytest тест для GET /api/users/{id}. Тест должен: проверить статус 200, схему ответа (id, name, email), и что id в ответе совпадает с запрошенным. Используй mock для requests.get.",
+      "starter_code": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n# Предположим что get_user(user_id) делает requests.get и возвращает dict\ndef get_user(user_id: int) -> dict:\n    import requests\n    response = requests.get(f'https://api.example.com/users/{user_id}')\n    response.raise_for_status()\n    return response.json()\n\n# Напиши тест ниже:\ndef test_get_user_returns_correct_schema():\n    pass",
+      "solution": "import pytest\nfrom unittest.mock import patch, MagicMock\n\ndef get_user(user_id: int) -> dict:\n    import requests\n    response = requests.get(f'https://api.example.com/users/{user_id}')\n    response.raise_for_status()\n    return response.json()\n\n@patch('requests.get')\ndef test_get_user_returns_correct_schema(mock_get):\n    mock_response = MagicMock()\n    mock_response.status_code = 200\n    mock_response.json.return_value = {\n        'id': 42,\n        'name': 'Alice',\n        'email': 'alice@example.com'\n    }\n    mock_get.return_value = mock_response\n\n    result = get_user(42)\n\n    assert result['id'] == 42\n    assert 'name' in result\n    assert 'email' in result\n    assert isinstance(result['name'], str)",
+      "hints": [
+        "@patch('requests.get') заменяет настоящий get на мок",
+        "MagicMock() — объект-заглушка, .json.return_value задаёт ответ",
+        "Проверь id, наличие ключей, типы данных"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c019",
+      "topic": "api_testing",
+      "difficulty": "medium",
+      "description": "Напиши параметризованный pytest тест для валидации статус-кодов API. Проверь что: GET /users → 200, GET /users/999 → 404, POST /users без body → 400.",
+      "starter_code": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n# Напиши @pytest.mark.parametrize тест\n# Параметры: (url, method, expected_status)\ndef make_request(method: str, url: str, data=None) -> int:\n    import requests\n    resp = getattr(requests, method)(url, json=data)\n    return resp.status_code\n\n# Твой тест здесь:\n",
+      "solution": "import pytest\nfrom unittest.mock import patch, MagicMock\n\ndef make_request(method: str, url: str, data=None) -> int:\n    import requests\n    resp = getattr(requests, method)(url, json=data)\n    return resp.status_code\n\n@pytest.mark.parametrize('method, url, data, expected', [\n    ('get', 'https://api.example.com/users', None, 200),\n    ('get', 'https://api.example.com/users/999', None, 404),\n    ('post', 'https://api.example.com/users', None, 400),\n])\n@patch('requests.get')\n@patch('requests.post')\ndef test_api_status_codes(mock_post, mock_get, method, url, data, expected):\n    mock = MagicMock()\n    mock.status_code = expected\n    if method == 'get':\n        mock_get.return_value = mock\n    else:\n        mock_post.return_value = mock\n\n    result = make_request(method, url, data)\n    assert result == expected",
+      "hints": [
+        "@pytest.mark.parametrize принимает строку имён и список кортежей",
+        "Каждый кортеж — отдельный тест-кейс",
+        "Используй @patch для каждого HTTP метода отдельно"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c020",
+      "topic": "oop",
+      "difficulty": "medium",
+      "description": "Создай класс Stack с методами push, pop, peek, is_empty. Используй type hints. Добавь __len__ и __repr__.",
+      "starter_code": "from typing import TypeVar, Generic, Optional\n\nT = TypeVar('T')\n\nclass Stack(Generic[T]):\n    def __init__(self) -> None:\n        pass\n\n    def push(self, item: T) -> None:\n        pass\n\n    def pop(self) -> T:\n        pass\n\n    def peek(self) -> Optional[T]:\n        pass\n\n    def is_empty(self) -> bool:\n        pass\n\n    def __len__(self) -> int:\n        pass\n\n    def __repr__(self) -> str:\n        pass",
+      "solution": "from typing import TypeVar, Generic, Optional\n\nT = TypeVar('T')\n\nclass Stack(Generic[T]):\n    def __init__(self) -> None:\n        self._data: list[T] = []\n\n    def push(self, item: T) -> None:\n        self._data.append(item)\n\n    def pop(self) -> T:\n        if self.is_empty():\n            raise IndexError('pop from empty stack')\n        return self._data.pop()\n\n    def peek(self) -> Optional[T]:\n        return self._data[-1] if self._data else None\n\n    def is_empty(self) -> bool:\n        return len(self._data) == 0\n\n    def __len__(self) -> int:\n        return len(self._data)\n\n    def __repr__(self) -> str:\n        return f'Stack({self._data})'",
+      "hints": [
+        "Стек — LIFO (Last In First Out), list.append() и list.pop()",
+        "pop из пустого стека — raise IndexError",
+        "__len__ позволяет использовать len(stack)",
+        "peek возвращает верхний элемент БЕЗ удаления"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c027",
+      "topic": "functions",
+      "priority": 2,
+      "difficulty": "medium",
+      "description": "Напиши функцию-декоратор @log_calls, которая выводит название функции и аргументы при каждом вызове. Использовать @functools.wraps.",
+      "starter_code": "from functools import wraps\nfrom typing import Callable\n\ndef log_calls(func: Callable) -> Callable:\n    # Декоратор: выводит 'Calling func_name(args, kwargs)' перед вызовом\n    pass\n\n# Пример:\n# @log_calls\n# def add(a, b): return a + b\n# add(1, 2)  # → 'Calling add(1, 2)' и возвращает 3",
+      "solution": "from functools import wraps\nfrom typing import Callable\n\ndef log_calls(func: Callable) -> Callable:\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        args_str = ', '.join([repr(a) for a in args])\n        kwargs_str = ', '.join([f'{k}={v!r}' for k, v in kwargs.items()])\n        all_args = ', '.join(filter(None, [args_str, kwargs_str]))\n        print(f'Calling {func.__name__}({all_args})')\n        return func(*args, **kwargs)\n    return wrapper",
+      "hints": [
+        "@wraps(func) — не забудь! Иначе потеряешь __name__ и __doc__",
+        "wrapper принимает *args, **kwargs и передаёт их в func",
+        "repr(a) — строковое представление аргументов для красивого вывода"
+      ]
+    },
+    {
+      "id": "c030",
+      "topic": "scope",
+      "priority": 2,
+      "difficulty": "medium",
+      "description": "Напиши функцию make_counter(start=0, step=1), которая возвращает функцию-счётчик. Каждый вызов возвращает следующее значение. Используй замыкание и nonlocal.",
+      "starter_code": "def make_counter(start: int = 0, step: int = 1):\n    # Возвращает функцию, каждый вызов которой\n    # возвращает следующее значение счётчика\n    pass\n\n# Пример:\n# cnt = make_counter(10, 5)\n# cnt()  # 10\n# cnt()  # 15\n# cnt()  # 20",
+      "solution": "def make_counter(start: int = 0, step: int = 1):\n    current = start\n\n    def counter() -> int:\n        nonlocal current\n        value = current\n        current += step\n        return value\n\n    return counter",
+      "hints": [
+        "Нужна переменная current во внешней функции",
+        "nonlocal current — чтобы изменять её внутри вложенной функции",
+        "Сохрани значение ДО увеличения, верни его"
+      ]
+    },
+    {
+      "id": "c035",
+      "topic": "api_testing",
+      "priority": 2,
+      "difficulty": "medium",
+      "qa_context": "Класс ApiClient — паттерн из реальных QA-проектов WB/Ozon. Инкапсулирует HTTP логику, auth, base_url. Тесты работают с методами объекта, а не с сырым requests. `@classmethod from_env()` — стандарт для CI/CD.",
+      "description": "Напиши базовый класс ApiClient с методами get(), post() и delete(). Конструктор принимает base_url и token. Добавь @classmethod from_env() для создания из переменных окружения BASE_URL и API_TOKEN.",
+      "starter_code": "import os\nimport requests\nfrom typing import Any, Optional\n\nclass ApiClient:\n    def __init__(self, base_url: str, token: str) -> None:\n        # Сохрани base_url\n        # Создай requests.Session с заголовками Authorization и Content-Type\n        pass\n\n    @classmethod\n    def from_env(cls) -> 'ApiClient':\n        # Создай экземпляр из env переменных BASE_URL и API_TOKEN\n        pass\n\n    def get(self, endpoint: str, params: Optional[dict] = None) -> requests.Response:\n        pass\n\n    def post(self, endpoint: str, json: Any = None) -> requests.Response:\n        pass\n\n    def delete(self, endpoint: str) -> requests.Response:\n        pass\n\n# Пример:\n# client = ApiClient.from_env()\n# resp = client.get('/users', params={'page': 1})\n",
+      "solution": "import os\nimport requests\nfrom typing import Any, Optional\n\n\nclass ApiClient:\n    def __init__(self, base_url: str, token: str) -> None:\n        self._base_url = base_url.rstrip('/')\n        self._session = requests.Session()\n        self._session.headers.update({\n            'Authorization': f'Bearer {token}',\n            'Content-Type': 'application/json',\n            'Accept': 'application/json',\n        })\n\n    @classmethod\n    def from_env(cls) -> 'ApiClient':\n        base_url = os.environ.get('BASE_URL', 'http://localhost:8000')\n        token = os.environ['API_TOKEN']  # обязателен — KeyError если нет\n        return cls(base_url, token)\n\n    def get(self, endpoint: str, params: Optional[dict] = None) -> requests.Response:\n        return self._session.get(f'{self._base_url}{endpoint}', params=params)\n\n    def post(self, endpoint: str, json: Any = None) -> requests.Response:\n        return self._session.post(f'{self._base_url}{endpoint}', json=json)\n\n    def delete(self, endpoint: str) -> requests.Response:\n        return self._session.delete(f'{self._base_url}{endpoint}')\n\n    def close(self) -> None:\n        self._session.close()\n",
+      "hints": [
+        "requests.Session() — создаёт сессию, переиспользует соединение",
+        "self._base_url.rstrip('/') — убрать trailing slash чтобы не было двойного //",
+        "@classmethod def from_env(cls) — cls это сам класс, return cls(base_url, token)",
+        "os.environ['KEY'] бросит KeyError если нет — хорошо для обязательных переменных"
+      ]
+    },
+    {
+      "id": "c037",
+      "topic": "pytest",
+      "priority": 2,
+      "difficulty": "medium",
+      "qa_context": "Декоратор `@retry` — реальный инструмент для нестабильных тестовых окружений (flaky tests). WB/Ozon используют retry для тестов загрузки файлов, создания ресурсов с задержкой. `pytest-rerunfailures` — готовый плагин, но понимание retry через декоратор важно.",
+      "description": "Напиши декоратор @retry(times=3, delay=0.1, exceptions=(Exception,)) для повторного выполнения функции при исключении. После исчерпания попыток — бросить последнее исключение. Использование: @retry(times=3, delay=0.5) def flaky_api_call(): ...",
+      "starter_code": "import time\nfrom typing import Type\nfrom functools import wraps\n\ndef retry(times: int = 3, delay: float = 0.1, exceptions: tuple = (Exception,)):\n    \"\"\"\n    Декоратор для повторного вызова функции при исключении.\n    times: количество попыток\n    delay: задержка между попытками в секундах\n    exceptions: типы исключений для повтора\n    \"\"\"\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            # Попробуй вызвать func times раз\n            # При исключении из exceptions — подожди delay и повтори\n            # После последней попытки — бросить исключение\n            pass\n        return wrapper\n    return decorator\n\n# Пример:\n# @retry(times=3, delay=0.1)\n# def flaky_request():\n#     import requests\n#     return requests.get('https://unstable-api.com/data', timeout=1)\n",
+      "solution": "import time\nfrom functools import wraps\n\n\ndef retry(times: int = 3, delay: float = 0.1, exceptions: tuple = (Exception,)):\n    \"\"\"Декоратор для повторного вызова функции при исключении.\"\"\"\n    def decorator(func):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            last_exception = None\n            for attempt in range(1, times + 1):\n                try:\n                    return func(*args, **kwargs)\n                except exceptions as e:\n                    last_exception = e\n                    if attempt < times:\n                        time.sleep(delay)\n            raise last_exception\n        return wrapper\n    return decorator\n\n\n# Тест самого декоратора:\nimport pytest\nfrom unittest.mock import MagicMock\n\ndef test_retry_succeeds_on_third_attempt():\n    call_count = 0\n\n    @retry(times=3, delay=0)\n    def flaky():\n        nonlocal call_count\n        call_count += 1\n        if call_count < 3:\n            raise ConnectionError('Flaky!')\n        return 'success'\n\n    result = flaky()\n    assert result == 'success'\n    assert call_count == 3\n\ndef test_retry_raises_after_all_attempts():\n    @retry(times=3, delay=0)\n    def always_fails():\n        raise ConnectionError('Always fails')\n\n    with pytest.raises(ConnectionError):\n        always_fails()\n",
+      "hints": [
+        "for attempt in range(1, times + 1): — нумерация с 1 для читаемости",
+        "try/except exceptions as e: last_exception = e — сохранить последнее исключение",
+        "if attempt < times: time.sleep(delay) — задержка только между попытками, не после последней",
+        "@wraps(func) — сохранить __name__ и __doc__ оригинальной функции"
+      ]
+    },
+    {
+      "id": "c040",
+      "topic": "pytest",
+      "priority": 2,
+      "difficulty": "medium",
+      "qa_context": "conftest.py с несколькими фикстурами разных scope — реальная структура тест-проекта. `scope='session'` для дорогих операций (логин), `scope='function'` для изолированных тестов. Зависимость фикстур друг от друга — стандартный паттерн.",
+      "description": "Напиши conftest.py для API тест-проекта с фикстурами: base_url (session, из env), auth_token (session, делает POST /auth/login), api_client (session, Session с Bearer token), cleanup_users (function, удаляет созданных тестом пользователей через yield).",
+      "starter_code": "import os\nimport pytest\nimport requests\n\n# conftest.py для тест-проекта REST API\n\n# 1. base_url — scope='session', из переменной окружения BASE_URL\n@pytest.fixture(scope='session')\ndef base_url():\n    pass\n\n# 2. auth_token — scope='session', делает реальный логин\n@pytest.fixture(scope='session')\ndef auth_token(base_url):\n    # POST {base_url}/auth/login с TEST_USER и TEST_PASSWORD из env\n    # Вернуть access_token из ответа\n    pass\n\n# 3. api_client — scope='session', requests.Session с токеном\n@pytest.fixture(scope='session')\ndef api_client(base_url, auth_token):\n    # Создать Session, установить заголовки\n    # yield session\n    # После всех тестов — session.close()\n    pass\n\n# 4. cleanup_users — scope='function', для удаления тестовых данных\n@pytest.fixture\ndef cleanup_users(api_client, base_url):\n    # Список ID созданных пользователей\n    created_ids = []\n    yield created_ids  # тест добавляет сюда ID\n    # После теста — удалить всех созданных пользователей\n    for user_id in created_ids:\n        api_client.delete(f'{base_url}/users/{user_id}')\n",
+      "solution": "import os\nimport pytest\nimport requests\n\n\n@pytest.fixture(scope='session')\ndef base_url() -> str:\n    return os.environ.get('BASE_URL', 'http://localhost:8000')\n\n\n@pytest.fixture(scope='session')\ndef auth_token(base_url: str) -> str:\n    resp = requests.post(\n        f'{base_url}/auth/login',\n        json={\n            'username': os.environ.get('TEST_USER', 'testuser'),\n            'password': os.environ.get('TEST_PASSWORD', 'testpass'),\n        },\n    )\n    assert resp.status_code == 200, f'Login failed: {resp.text}'\n    return resp.json()['access_token']\n\n\n@pytest.fixture(scope='session')\ndef api_client(base_url: str, auth_token: str) -> requests.Session:\n    session = requests.Session()\n    session.headers.update({\n        'Authorization': f'Bearer {auth_token}',\n        'Content-Type': 'application/json',\n    })\n    yield session\n    session.close()\n\n\n@pytest.fixture\ndef cleanup_users(api_client: requests.Session, base_url: str) -> list[int]:\n    \"\"\"Фикстура для очистки тестовых пользователей после теста.\"\"\"\n    created_ids: list[int] = []\n    yield created_ids  # тест добавляет ID сюда\n    # Teardown: удаляем всех созданных пользователей\n    for user_id in created_ids:\n        resp = api_client.delete(f'{base_url}/users/{user_id}')\n        # Игнорируем 404 — пользователь мог быть удалён тестом\n        assert resp.status_code in (200, 204, 404), f'Cleanup failed for user {user_id}'\n\n\n# Пример использования:\n# def test_create_and_delete_user(api_client, base_url, cleanup_users):\n#     resp = api_client.post(f'{base_url}/users', json={'name': 'Test', 'email': 't@t.com'})\n#     user_id = resp.json()['id']\n#     cleanup_users.append(user_id)  # зарегистрировать для удаления\n#     assert resp.status_code == 201\n",
+      "hints": [
+        "scope='session' — выполняется один раз для всей тестовой сессии",
+        "scope='function' (default) — выполняется для каждого теста",
+        "yield в фикстуре разделяет setup (до yield) и teardown (после yield)",
+        "Фикстуры могут зависеть от других фикстур — pytest разрешает зависимости автоматически",
+        "Ignore 404 в cleanup — тест мог сам удалить пользователя"
+      ]
+    },
+    {
+      "id": "c022",
+      "topic": "algorithms",
+      "difficulty": "hard",
+      "description": "[LeetCode #238 Product of Array Except Self] Для массива nums верни массив output где output[i] = произведение всех элементов кроме nums[i]. Без деления, O(n).",
+      "starter_code": "def product_except_self(nums: list[int]) -> list[int]:\n    # Подсказка: prefix product + suffix product\n    # Не используй деление!\n    pass",
+      "solution": "def product_except_self(nums: list[int]) -> list[int]:\n    n = len(nums)\n    result = [1] * n\n\n    # Prefix: result[i] = произведение всех элементов слева от i\n    prefix = 1\n    for i in range(n):\n        result[i] = prefix\n        prefix *= nums[i]\n\n    # Suffix: умножаем на произведение всех элементов справа от i\n    suffix = 1\n    for i in range(n - 1, -1, -1):\n        result[i] *= suffix\n        suffix *= nums[i]\n\n    return result",
+      "hints": [
+        "Prefix product: для каждого i — произведение всех элементов ДО i",
+        "Suffix product: для каждого i — произведение всех элементов ПОСЛЕ i",
+        "result[i] = prefix[i] * suffix[i]",
+        "Можно без дополнительного массива: два прохода по result"
+      ],
+      "priority": 2
+    },
+    {
+      "id": "c039",
+      "topic": "api_testing",
+      "priority": 2,
+      "difficulty": "hard",
+      "qa_context": "Тест refresh token flow — паттерн из реальных проектов. Токены протухают, клиент должен автоматически обновлять. Тест с `freezegun` или мок времени — продвинутая тема для senior QA.",
+      "description": "Напиши полный тест-сценарий для flow авторизации: 1) POST /auth/login → получить access_token, 2) GET /profile с токеном → 200, 3) GET /profile без токена → 401, 4) GET /profile с невалидным токеном → 401. Все через @patch.",
+      "starter_code": "import pytest\nfrom unittest.mock import patch, MagicMock\n\n\n# Тестируемые функции\ndef login(username: str, password: str) -> str:\n    import requests\n    resp = requests.post('https://api.example.com/auth/login',\n                         json={'username': username, 'password': password})\n    return resp.json()['access_token']\n\ndef get_profile(token: str) -> dict:\n    import requests\n    resp = requests.get('https://api.example.com/profile',\n                        headers={'Authorization': f'Bearer {token}'})\n    if resp.status_code == 401:\n        raise PermissionError('Unauthorized')\n    return resp.json()\n\n\ndef test_full_auth_flow():\n    # Шаг 1: Мокнуть login → вернуть токен\n    # Шаг 2: Мокнуть get_profile с токеном → вернуть данные профиля\n    # Проверить что данные корректны\n    pass\n\ndef test_profile_without_token():\n    # Мокнуть requests.get чтобы возвращал 401\n    # Проверить что get_profile('') бросает PermissionError\n    pass\n",
+      "solution": "import pytest\nfrom unittest.mock import patch, MagicMock, call\n\n\ndef login(username: str, password: str) -> str:\n    import requests\n    resp = requests.post('https://api.example.com/auth/login',\n                         json={'username': username, 'password': password})\n    return resp.json()['access_token']\n\n\ndef get_profile(token: str) -> dict:\n    import requests\n    resp = requests.get('https://api.example.com/profile',\n                        headers={'Authorization': f'Bearer {token}'})\n    if resp.status_code == 401:\n        raise PermissionError('Unauthorized')\n    return resp.json()\n\n\ndef test_full_auth_flow():\n    # Мок для login\n    login_mock = MagicMock()\n    login_mock.json.return_value = {'access_token': 'test_token_123'}\n\n    # Мок для get_profile\n    profile_mock = MagicMock()\n    profile_mock.status_code = 200\n    profile_mock.json.return_value = {'id': 1, 'username': 'alice', 'email': 'alice@example.com'}\n\n    with patch('requests.post', return_value=login_mock):\n        token = login('alice', 'password123')\n\n    assert token == 'test_token_123'\n\n    with patch('requests.get', return_value=profile_mock) as mock_get:\n        profile = get_profile(token)\n\n    assert profile['username'] == 'alice'\n    mock_get.assert_called_once_with(\n        'https://api.example.com/profile',\n        headers={'Authorization': 'Bearer test_token_123'}\n    )\n\n\ndef test_profile_without_token():\n    unauthorized_mock = MagicMock()\n    unauthorized_mock.status_code = 401\n    unauthorized_mock.json.return_value = {'detail': 'Not authenticated'}\n\n    with patch('requests.get', return_value=unauthorized_mock):\n        with pytest.raises(PermissionError, match='Unauthorized'):\n            get_profile('')\n\n\ndef test_profile_with_invalid_token():\n    invalid_token_mock = MagicMock()\n    invalid_token_mock.status_code = 401\n\n    with patch('requests.get', return_value=invalid_token_mock):\n        with pytest.raises(PermissionError):\n            get_profile('invalid_token_xyz')\n",
+      "hints": [
+        "Каждый тест проверяет один сценарий — не объединяй все в один тест",
+        "mock_get.assert_called_once_with(url, headers=...) — проверить что Authorization header передан",
+        "pytest.raises(PermissionError, match='Unauthorized') — проверить тип И сообщение исключения",
+        "MagicMock() для login не нужен status_code — нас интересует только json()"
+      ]
+    },
+    {
+      "id": "c021",
+      "topic": "decorators",
+      "difficulty": "medium",
+      "description": "Напиши декоратор @retry(times=3, delay=0) который повторяет вызов функции до N раз при исключении. Если все попытки провалились — бросить последнее исключение.",
+      "starter_code": "import time\nfrom functools import wraps\nfrom typing import Callable, TypeVar\n\nF = TypeVar('F', bound=Callable)\n\ndef retry(times: int = 3, delay: float = 0.0):\n    # Это фабрика декораторов\n    # Нужно три уровня вложенности\n    pass\n\n# Пример использования:\n# @retry(times=3, delay=0.1)\n# def fetch_data(): ...",
+      "solution": "import time\nfrom functools import wraps\nfrom typing import Callable\n\ndef retry(times: int = 3, delay: float = 0.0):\n    def decorator(func: Callable) -> Callable:\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            last_exc: Exception | None = None\n            for attempt in range(times):\n                try:\n                    return func(*args, **kwargs)\n                except Exception as e:\n                    last_exc = e\n                    if delay > 0:\n                        time.sleep(delay)\n            raise last_exc\n        return wrapper\n    return decorator",
+      "hints": [
+        "Три уровня: retry() → decorator(func) → wrapper(*args)",
+        "@wraps(func) сохраняет метаданные оригинальной функции",
+        "Храни последнее исключение в last_exc",
+        "После всех попыток: raise last_exc"
+      ],
+      "priority": 3
+    },
+    {
+      "id": "c029",
+      "topic": "pattern_matching",
+      "priority": 3,
+      "difficulty": "medium",
+      "description": "Напиши функцию process_command(cmd: dict) с match/case, которая обрабатывает команды вида:\n{'action': 'buy', 'item': 'apple', 'qty': 3}\n{'action': 'sell', 'item': 'banana'}\n{'action': 'quit'}\nВерни строку описания действия.",
+      "starter_code": "def process_command(cmd: dict) -> str:\n    # Используй match/case с деструктуризацией словаря\n    pass",
+      "solution": "def process_command(cmd: dict) -> str:\n    match cmd:\n        case {'action': 'buy', 'item': item, 'qty': qty}:\n            return f'Buying {qty} x {item}'\n        case {'action': 'buy', 'item': item}:\n            return f'Buying 1 x {item}'\n        case {'action': 'sell', 'item': item}:\n            return f'Selling {item}'\n        case {'action': 'quit'}:\n            return 'Quitting'\n        case _:\n            return f'Unknown command: {cmd}'",
+      "hints": [
+        "match cmd: — сопоставляем словарь",
+        "case {'action': 'buy', 'item': item} — деструктуризация, item захватывает значение",
+        "Более конкретные case должны идти РАНЬШЕ менее конкретных",
+        "case _: — default если ничего не подошло"
+      ]
+    },
+    {
+      "id": "c023",
+      "topic": "async",
+      "difficulty": "hard",
+      "description": "Напиши async функцию fetch_all(urls), которая делает конкурентные HTTP GET запросы ко всем URL и возвращает список статус-кодов. Используй asyncio.gather и aiohttp (или httpx).",
+      "starter_code": "import asyncio\nfrom typing import Any\n\n# Используй httpx.AsyncClient или aiohttp.ClientSession\nasync def fetch_all(urls: list[str]) -> list[int]:\n    # Все запросы должны быть конкурентными (не последовательными)\n    pass",
+      "solution": "import asyncio\nfrom typing import Any\n\nasync def fetch_all(urls: list[str]) -> list[int]:\n    try:\n        import httpx\n        async with httpx.AsyncClient() as client:\n            tasks = [client.get(url) for url in urls]\n            responses = await asyncio.gather(*tasks, return_exceptions=True)\n            return [\n                r.status_code if not isinstance(r, Exception) else 0\n                for r in responses\n            ]\n    except ImportError:\n        # Fallback: синхронный вариант для демонстрации\n        import requests\n        return [requests.get(url).status_code for url in urls]",
+      "hints": [
+        "asyncio.gather(*tasks) запускает все корутины конкурентно",
+        "httpx.AsyncClient — async-совместимый HTTP клиент",
+        "return_exceptions=True — не бросает исключение при провале одного запроса",
+        "async with — контекстный менеджер для закрытия соединений"
+      ],
+      "priority": 3
+    },
+    {
+      "id": "c038",
+      "topic": "async",
+      "priority": 3,
+      "difficulty": "hard",
+      "qa_context": "Async API тесты — актуально для команд где backend использует FastAPI/aiohttp. `pytest-asyncio` + `httpx.AsyncClient` — стандарт для async тестирования. `asyncio.gather` позволяет запустить 100 параллельных запросов — основа нагрузочных тестов.",
+      "description": "Напиши async тест с httpx.AsyncClient который одновременно делает 5 запросов GET /users используя asyncio.gather. Проверь что все ответы вернули status 200. Используй pytest-asyncio.",
+      "starter_code": "import asyncio\nimport pytest\nimport httpx\n\n# Нужно: pip install httpx pytest-asyncio\n# В pytest.ini: asyncio_mode = auto\n\nBASE_URL = 'https://jsonplaceholder.typicode.com'  # тестовый публичный API\n\n@pytest.mark.asyncio\nasync def test_concurrent_requests():\n    # Создай httpx.AsyncClient\n    # Сделай 5 параллельных GET /users через asyncio.gather\n    # Проверь что все status_code == 200\n    pass\n\n# Бонус: напиши async фикстуру\n@pytest.fixture\nasync def async_client():\n    # Создай и верни httpx.AsyncClient\n    # Используй yield для закрытия\n    pass\n",
+      "solution": "import asyncio\nimport pytest\nimport httpx\n\nBASE_URL = 'https://jsonplaceholder.typicode.com'\n\n\n@pytest.mark.asyncio\nasync def test_concurrent_requests():\n    async with httpx.AsyncClient() as client:\n        # Создаём 5 корутин\n        tasks = [client.get(f'{BASE_URL}/users') for _ in range(5)]\n        # Запускаем параллельно\n        responses = await asyncio.gather(*tasks)\n\n    assert len(responses) == 5\n    for resp in responses:\n        assert resp.status_code == 200\n\n\n@pytest.fixture\nasync def async_client():\n    async with httpx.AsyncClient(base_url=BASE_URL) as client:\n        yield client\n\n\n@pytest.mark.asyncio\nasync def test_get_user_async(async_client):\n    resp = await async_client.get('/users/1')\n    assert resp.status_code == 200\n    data = resp.json()\n    assert 'id' in data\n    assert 'email' in data\n\n\n# Нагрузочный паттерн:\n@pytest.mark.asyncio\nasync def test_load_pattern():\n    \"\"\"100 параллельных запросов — базовый нагрузочный тест.\"\"\"\n    async with httpx.AsyncClient() as client:\n        tasks = [client.get(f'{BASE_URL}/users/{i % 10 + 1}') for i in range(100)]\n        responses = await asyncio.gather(*tasks, return_exceptions=True)\n\n    errors = [r for r in responses if isinstance(r, Exception)]\n    success = [r for r in responses if not isinstance(r, Exception)]\n\n    assert len(errors) == 0, f'{len(errors)} requests failed'\n    assert all(r.status_code == 200 for r in success)\n",
+      "hints": [
+        "async with httpx.AsyncClient() as client: — контекстный менеджер для async клиента",
+        "tasks = [client.get(url) for _ in range(5)] — список корутин (не запущенных!)",
+        "responses = await asyncio.gather(*tasks) — запустить все параллельно, ждать результатов",
+        "pytest.mark.asyncio — нужен для async тест-функций",
+        "asyncio_mode = auto в pytest.ini — убирает необходимость явно ставить @pytest.mark.asyncio"
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "id": "q001",
+      "topic": "comprehensions",
+      "question": "Какой тип возвращает {x for x in range(5)}?",
+      "options": [
+        "list",
+        "set",
+        "dict",
+        "tuple"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `items = response.json()['data']; items.sort(key=lambda x: x['id'])` — сортировка для сравнения. `list.sort()` мутирует — не применяй к фикстурным данным!"
+    },
+    {
+      "id": "q002",
+      "topic": "list",
+      "question": "Что вернёт lst.sort() где lst = [3, 1, 2]?",
+      "options": [
+        "[1, 2, 3]",
+        "None",
+        "[3, 1, 2]",
+        "sorted([3, 1, 2])"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `response_items = [r.json() for r in responses]` — list comprehension для batch ответов. `[u['id'] for u in users if u['active']]` — фильтрация активных."
+    },
+    {
+      "id": "q003",
+      "topic": "dict",
+      "question": "Что произойдёт при dict['missing_key'] если ключа нет?",
+      "options": [
+        "Вернёт None",
+        "Вернёт 0",
+        "Бросит KeyError",
+        "Вернёт False"
+      ],
+      "correct": 2,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `user_ids = [u['id'] for u in api_response]; assert 42 in user_ids` — проверка наличия элемента. `index()` бросает ValueError — используй `in` в тестах."
+    },
+    {
+      "id": "q005",
+      "topic": "list",
+      "question": "Что вернёт [1, 2, 3][::-1]?",
+      "options": [
+        "[1, 2, 3]",
+        "[3, 2, 1]",
+        "[]",
+        "Error"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `{u['id']: u for u in users_list}` — индекс для быстрого lookup. `Counter(statuses)` для подсчёта. Понимание dict comprehension критично для работы с JSON-ответами."
+    },
+    {
+      "id": "q006",
+      "topic": "strings",
+      "question": "Что вернёт ' hello '.strip()?",
+      "options": [
+        "' hello '",
+        "'hello'",
+        "'hello '",
+        "' hello'"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: `actual_fields = set(response.json().keys()); required = {'id', 'name', 'email'}; assert required.issubset(actual_fields)` — проверка обязательных полей."
+    },
+    {
+      "id": "q013",
+      "topic": "errors",
+      "question": "Что является антипаттерном обработки исключений?",
+      "options": [
+        "except ValueError: ...",
+        "except (KeyError, TypeError): ...",
+        "except: pass",
+        "try/except с finally:"
+      ],
+      "correct": 2,
+      "difficulty": "easy",
+      "priority": 1,
+      "qa_context": "В тестах: кастомное исключение `class SchemaValidationError(AssertionError)` — pytest его поймает как обычный assertion fail, но с более точным типом для `pytest.raises`."
+    },
+    {
+      "id": "q031",
+      "topic": "functions",
+      "priority": 1,
+      "question": "Что содержит `*args` внутри функции?\ndef f(*args): print(type(args))",
+      "options": [
+        "list",
+        "tuple",
+        "dict",
+        "set"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "В тестах: `pytest-asyncio` + `@pytest.mark.asyncio` + `async def test_...`. `httpx.AsyncClient` вместо `requests`. `await asyncio.gather(*requests)` — параллельные запросы."
+    },
+    {
+      "id": "q033",
+      "topic": "modules",
+      "priority": 1,
+      "question": "Чему равно __name__ в файле который ИМПОРТИРУЕТСЯ (не запускается)?",
+      "options": [
+        "'__main__'",
+        "Имени файла без расширения",
+        "None",
+        "1"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "В тестах: `sorted(users, key=lambda u: u['created_at'])` — проверка сортировки. `filter(lambda u: u['status'] == 'active', users)` — но comprehension читаемее."
+    },
+    {
+      "id": "q034",
+      "topic": "modules",
+      "priority": 1,
+      "question": "Почему `from module import *` считается антипаттерном?",
+      "options": [
+        "Работает только в Python 2",
+        "Может перезаписать существующие имена в текущем пространстве и нарушить читаемость",
+        "Импортирует только публичные функции",
+        "Замедляет загрузку модуля"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "В тестах: LEGB объясняет почему `BASE_URL` доступен внутри теста если объявлен на уровне модуля. `nonlocal` для счётчика внутри фикстуры."
+    },
+    {
+      "id": "q035",
+      "topic": "files",
+      "priority": 1,
+      "question": "Зачем использовать `with open(...)` вместо `f = open(...)`?",
+      "options": [
+        "with open быстрее",
+        "with open гарантирует закрытие файла даже при исключении",
+        "with open поддерживает больше кодировок",
+        "Нет разницы"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "`if __name__ == '__main__':` — скрипт генерации данных можно запустить напрямую И импортировать в conftest. Pytest не выполнит этот блок при импорте conftest."
+    },
+    {
+      "id": "q004",
+      "topic": "set",
+      "question": "Какова временная сложность проверки 'x in set'?",
+      "options": [
+        "O(n)",
+        "O(log n)",
+        "O(1) в среднем",
+        "O(n²)"
+      ],
+      "correct": 2,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `assert response.json().get('user_id') is not None` vs `assert 'user_id' in response.json()` — обе проверки используются в schema validation."
+    },
+    {
+      "id": "q007",
+      "topic": "comprehensions",
+      "question": "Что вернёт [x**2 for x in range(4) if x % 2 == 0]?",
+      "options": [
+        "[0, 4]",
+        "[0, 1, 4, 9]",
+        "[4, 16]",
+        "[1, 9]"
+      ],
+      "correct": 0,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `assert len(response_ids) == len(set(response_ids))` — проверка уникальности IDs в ответе API. Классическая проверка дубликатов."
+    },
+    {
+      "id": "q008",
+      "topic": "dict",
+      "question": "Что делает dict.setdefault(key, [])?",
+      "options": [
+        "Перезаписывает значение ключа на []",
+        "Возвращает [] и устанавливает его если ключа нет, иначе возвращает текущее значение",
+        "Удаляет ключ из словаря",
+        "Бросает KeyError если ключ существует"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: comprehension читаемее map/filter. `[r.json() for r in responses if r.status_code == 200]` — только успешные ответы. Предпочтительный стиль в pytest."
+    },
+    {
+      "id": "q012",
+      "topic": "set",
+      "question": "Что такое frozenset в отличие от set?",
+      "options": [
+        "frozenset быстрее",
+        "frozenset неизменяемый и хешируемый, можно использовать как ключ dict",
+        "frozenset хранит только числа",
+        "frozenset упорядочен"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `with pytest.raises(requests.Timeout): client.get('/slow-endpoint', timeout=0.001)` — проверка timeout. `pytest.raises(ValidationError)` для pydantic."
+    },
+    {
+      "id": "q014",
+      "topic": "list",
+      "question": "Что вернёт list(zip([1,2,3], ['a','b']))?",
+      "options": [
+        "[(1,'a'), (2,'b'), (3, None)]",
+        "[(1,'a'), (2,'b')]",
+        "Error",
+        "[(1,'a'), (2,'b'), (3,'')]"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: `def user_factory(): while True: yield {'id': next(counter), 'name': fake.name()}` — бесконечный генератор тест-данных. `islice(user_factory(), 100)` — взять 100."
+    },
+    {
+      "id": "q015",
+      "topic": "comprehensions",
+      "question": "Как инвертировать словарь {'a': 1, 'b': 2} через dict comprehension?",
+      "options": [
+        "{k: v for v, k in d}",
+        "{v: k for k, v in d.items()}",
+        "{d[k]: k for k in d.keys()}",
+        "dict(reversed(d.items()))"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 1,
+      "qa_context": "В тестах: GIL — причина почему `ThreadPoolExecutor` не даёт прироста при CPU-bound генерации данных. `asyncio` + `httpx.AsyncClient` — правильный способ параллельных API запросов."
+    },
+    {
+      "id": "q032",
+      "topic": "functions",
+      "priority": 1,
+      "question": "Что произойдёт при вызове increment() без nonlocal?\ndef outer():\n    n = 0\n    def increment(): n += 1\n    increment()",
+      "options": [
+        "n станет 1",
+        "UnboundLocalError — нельзя изменить переменную без nonlocal",
+        "NameError — n не определена",
+        "Ничего не произойдёт"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "qa_context": "`@pytest.fixture`, `@pytest.mark.parametrize`, `@pytest.mark.skipif` — всё это декораторы. `@allure.step('Создать заказ')` — декоратор для отчётности. Понимание = правильное применение."
+    },
+    {
+      "id": "q021",
+      "topic": "api_testing",
+      "question": "Что проверяет этот тест?\nassert response.status_code == 200\nassert 'id' in response.json()",
+      "options": [
+        "Только статус ответа",
+        "Статус ответа и наличие ключа 'id' в теле",
+        "Схему JSON и производительность",
+        "Авторизацию и статус"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "priority": 2,
+      "qa_context": "Это фундаментальный вопрос — структура REST API теста. Каждый тест: arrange (фикстура) → act (HTTP запрос) → assert (проверки статуса + тела)."
+    },
+    {
+      "id": "q022",
+      "topic": "api_testing",
+      "question": "Какой HTTP статус код означает 'Ресурс не найден'?",
+      "options": [
+        "200",
+        "400",
+        "404",
+        "500"
+      ],
+      "correct": 2,
+      "difficulty": "easy",
+      "priority": 2,
+      "qa_context": "`@patch` — когда тестируешь код который использует requests. Мок возвращает контролируемый ответ. `mock.assert_called_once_with(url, headers=...)` — проверка правильности запроса."
+    },
+    {
+      "id": "q023",
+      "topic": "api_testing",
+      "question": "Зачем мокировать HTTP запросы в тестах?",
+      "options": [
+        "Чтобы тесты работали быстрее и не зависели от внешних сервисов",
+        "Для проверки реальных endpoints",
+        "Мокирование обязательно по стандарту pytest",
+        "Чтобы не писать assert"
+      ],
+      "correct": 0,
+      "difficulty": "easy",
+      "priority": 2,
+      "qa_context": "`responses` vs `unittest.mock`: responses работает на уровне HTTP, перехватывает requests. `mock.patch` работает на уровне Python объектов. responses предпочтительнее для API тестов."
+    },
+    {
+      "id": "q024",
+      "topic": "algorithms",
+      "question": "Сложность поиска в dict (хеш-таблица) в среднем случае?",
+      "options": [
+        "O(n)",
+        "O(log n)",
+        "O(1)",
+        "O(n²)"
+      ],
+      "correct": 2,
+      "difficulty": "easy",
+      "priority": 2,
+      "qa_context": "Pydantic в тестах: `UserSchema(**response.json())` — валидирует типы и структуру одной строкой. `ValidationError` — pytest его поймает. Самый чистый способ schema validation."
+    },
+    {
+      "id": "q038",
+      "topic": "files",
+      "priority": 2,
+      "question": "Что делает pathlib: path = base / 'config' / 'settings.json'?",
+      "options": [
+        "Деление числа base на строки",
+        "Объединяет пути — аналог os.path.join(base, 'config', 'settings.json')",
+        "SyntaxError — нельзя делить строку",
+        "Создаёт файл settings.json"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "`Path(__file__).parent / 'data'` — путь относительно conftest.py. `path.exists()` вместо try/except. `path.glob('*.json')` для поиска тест-данных. Кроссплатформенно."
+    },
+    {
+      "id": "q039",
+      "topic": "datetime",
+      "priority": 2,
+      "question": "Как получить строку '03.03.2026' из datetime объекта?",
+      "options": [
+        "dt.strptime('%d.%m.%Y')",
+        "dt.strftime('%d.%m.%Y')",
+        "dt.format('%d.%m.%Y')",
+        "str(dt, '%d.%m.%Y')"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "`datetime.now().strftime('%Y%m%d_%H%M%S')` — уникальное имя для test artifact. `datetime.fromisoformat(resp.json()['created_at'])` — парсинг дат из API ответа."
+    },
+    {
+      "id": "q009",
+      "topic": "generators",
+      "question": "В чём главное отличие generator expression от list comprehension?",
+      "options": [
+        "Генераторы быстрее вычисляются",
+        "Генераторы экономят память — вычисляют элементы лениво",
+        "Генераторы возвращают множество",
+        "Нет отличий, только синтаксис"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: dict comprehension для трансформации API ответа: `{item['sku']: item['price'] for item in catalog_response['items']}` — словарь sku→price для проверок."
+    },
+    {
+      "id": "q010",
+      "topic": "pytest",
+      "question": "Что произойдёт если pytest-фикстура помечена scope='module'?",
+      "options": [
+        "Создаётся для каждого теста",
+        "Создаётся один раз для всего test-файла (модуля)",
+        "Создаётся один раз для всей сессии",
+        "Применяется только к классам"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `url.split('/')[-1]` — извлечь ID из URL. `auth_header.split(' ')[1]` — извлечь Bearer токен. `','.join(ids)` — собрать query param."
+    },
+    {
+      "id": "q011",
+      "topic": "algorithms",
+      "question": "Какова сложность sorted() в Python (Timsort)?",
+      "options": [
+        "O(n)",
+        "O(n²)",
+        "O(n log n)",
+        "O(log n)"
+      ],
+      "correct": 2,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `f'Expected status 200, got {resp.status_code}\\nBody: {resp.text}'` — информативный assert message. f-strings в `pytest.fail(f'...')` и `allure.step(f'...')`."
+    },
+    {
+      "id": "q016",
+      "topic": "oop",
+      "question": "Что вернёт следующий код?\nclass A:\n    x = 1\na = A()\na.x = 2\nprint(A.x)",
+      "options": [
+        "2",
+        "1",
+        "AttributeError",
+        "None"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `def make_headers(extra=None): h = {'Content-Type': 'application/json'}; h.update(extra or {}); return h` — правильный паттерн. Мутабельный default = баг в фикстуре."
+    },
+    {
+      "id": "q017",
+      "topic": "oop",
+      "question": "В чём разница между @classmethod и @staticmethod?",
+      "options": [
+        "Нет разницы, оба не получают self",
+        "@classmethod получает cls, @staticmethod не получает ни cls ни self",
+        "@staticmethod получает cls, @classmethod получает self",
+        "@classmethod можно вызвать только из экземпляра"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `class UserApiClient: def __init__(self, session, base_url):` — инкапсуляция HTTP-логики. Все тесты используют методы клиента, а не сырой requests."
+    },
+    {
+      "id": "q019",
+      "topic": "python_internals",
+      "question": "Что произойдёт при вызове функции с mutable default argument второй раз?\ndef f(lst=[]): lst.append(1); return lst\nf()\nf()",
+      "options": [
+        "[1]",
+        "[1, 1]",
+        "[][1]",
+        "TypeError"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `class OrderClient(BaseClient):` переопределяет `_handle_error()` для специфики заказов. `super().get('/orders')` использует базовую HTTP-логику."
+    },
+    {
+      "id": "q025",
+      "topic": "algorithms",
+      "question": "Какая техника позволяет снизить O(n²) до O(n) при поиске пары с нужной суммой?",
+      "options": [
+        "Вложенный цикл",
+        "Сортировка + binary search",
+        "HashMap (dict) для O(1) complement lookup",
+        "Recursion"
+      ],
+      "correct": 2,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `O(n)` для поиска в списке тест-данных. При 10000+ кейсах — `set` или `dict` для `O(1)` lookup. `Counter(api_ids)` вместо вложенного цикла для поиска дубликатов."
+    },
+    {
+      "id": "q027",
+      "topic": "oop",
+      "question": "Что делает super().__init__() в дочернем классе?",
+      "options": [
+        "Создаёт новый экземпляр родительского класса",
+        "Вызывает __init__ родительского класса",
+        "Удаляет родительский класс",
+        "Копирует атрибуты родителя"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Sliding Window в тестах нагрузки: скользящее окно для вычисления средней latency за последние N запросов. `deque(maxlen=N)` — оптимальная реализация."
+    },
+    {
+      "id": "q028",
+      "topic": "pytest",
+      "question": "Как pytest находит фикстуры из conftest.py?",
+      "options": [
+        "Нужно явно импортировать: from conftest import my_fixture",
+        "Pytest автоматически находит conftest.py в папке с тестами — импорт не нужен",
+        "conftest.py нужно зарегистрировать в pytest.ini",
+        "Только если фикстура помечена @pytest.fixture(autouse=True)"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "В тестах: `Counter(item['category'] for item in response.json()['items'])` — подсчёт по категориям в ответе API. Проверка распределения данных."
+    },
+    {
+      "id": "q029",
+      "topic": "algorithms",
+      "question": "Что делает техника Two Pointers в отсортированном массиве?",
+      "options": [
+        "Делит массив пополам рекурсивно",
+        "Использует два индекса (обычно с двух концов) для O(n) поиска",
+        "Создаёт два копии массива",
+        "Сортирует массив за O(n)"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "Фикстура `api_client` с `requests.Session` — `scope='session'` значит одна сессия на все тесты. Быстрее чем создавать Session в каждом тесте. `yield` нужен для teardown (logout)."
+    },
+    {
+      "id": "q030",
+      "topic": "api_testing",
+      "question": "Что такое pytest.fixture(scope='session')?",
+      "options": [
+        "Фикстура создаётся для каждого теста заново",
+        "Фикстура создаётся один раз на всю тестовую сессию",
+        "Фикстура применяется только к первому тесту",
+        "Фикстура доступна только внутри одного файла"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 2,
+      "qa_context": "`conftest.py` — автоматически подхватывается pytest. Хранить: `api_client`, `auth_token`, `base_url`, `test_data`. Размещать в папке уровня применения фикстур."
+    },
+    {
+      "id": "q036",
+      "topic": "functions",
+      "priority": 2,
+      "question": "Что вернёт multiply(3)(4) при таком определении?\ndef multiply(n):\n    return lambda m: n * m",
+      "options": [
+        "7",
+        "12",
+        "lambda",
+        "TypeError"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "qa_context": "В тестах: `from tests.helpers import assert_response` — явный импорт хелперов. `import pytest` — стандарт. Никогда `from pytest import *` в conftest."
+    },
+    {
+      "id": "q037",
+      "topic": "scope",
+      "priority": 2,
+      "question": "В каком порядке Python ищет имена переменных? (LEGB)",
+      "options": [
+        "Global → Local → Enclosing → Built-in",
+        "Local → Enclosing → Global → Built-in",
+        "Built-in → Global → Enclosing → Local",
+        "Local → Global → Built-in → Enclosing"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "qa_context": "В тестах: `with open('fixtures/users.json') as f: data = json.load(f)` — загрузка тест-данных. `with open` гарантирует закрытие файла даже если тест упал."
+    },
+    {
+      "id": "q040",
+      "topic": "oop",
+      "priority": 2,
+      "question": "Что произойдёт при попытке создать экземпляр ABC класса с @abstractmethod?",
+      "options": [
+        "Создастся экземпляр, но методы вернут None",
+        "TypeError: Can't instantiate abstract class",
+        "NotImplementedError",
+        "Создастся экземпляр нормально"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "qa_context": "В тестах: `isinstance(resp.json(), dict)` — проверка типа. `pytest.raises(TypeError)` когда функция должна бросить TypeError. Базовые проверки типов в schema validation."
+    },
+    {
+      "id": "q026",
+      "topic": "python_internals",
+      "question": "GIL (Global Interpreter Lock) мешает параллельности в случае:",
+      "options": [
+        "I/O bound задач (сеть, файлы)",
+        "CPU bound задач в threading",
+        "asyncio корутин",
+        "multiprocessing"
+      ],
+      "correct": 1,
+      "difficulty": "hard",
+      "priority": 2,
+      "qa_context": "Two Pointers в тестах: проверка отсортированности `for i in range(len(items)-1): assert items[i] <= items[i+1]`. HashMap для проверки уникальности IDs в ответе."
+    },
+    {
+      "id": "q041",
+      "topic": "pattern_matching",
+      "priority": 3,
+      "question": "Что означает `case _:` в конструкции match?",
+      "options": [
+        "Сравнение с переменной _",
+        "Default — выполняется если ни один case не подошёл",
+        "Пропустить значение",
+        "Синтаксическая ошибка"
+      ],
+      "correct": 1,
+      "difficulty": "easy",
+      "qa_context": "В тестах: `match response_data: case {'status': 'error'}: pytest.fail(...)` — элегантный routing по типу ответа. Чище if/elif для 5+ вариантов."
+    },
+    {
+      "id": "q042",
+      "topic": "pattern_matching",
+      "priority": 3,
+      "question": "С какой версии Python доступен match/case?",
+      "options": [
+        "3.8",
+        "3.9",
+        "3.10",
+        "3.12"
+      ],
+      "correct": 2,
+      "difficulty": "easy",
+      "qa_context": "match/case с Python 3.10+ — можно использовать в test helpers для routing. Важно знать версию для CI/CD конфига."
+    },
+    {
+      "id": "q018",
+      "topic": "decorators",
+      "question": "Зачем использовать @functools.wraps в декораторе?",
+      "options": [
+        "Для ускорения декоратора",
+        "Чтобы сохранить __name__ и __doc__ оригинальной функции",
+        "Обязательно для работы декоратора",
+        "Для поддержки async функций"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `@classmethod def from_env(cls): return cls(os.getenv('BASE_URL'), os.getenv('API_TOKEN'))` — паттерн для инициализации клиента из CI-переменных."
+    },
+    {
+      "id": "q020",
+      "topic": "async",
+      "question": "Что такое asyncio и для каких задач он подходит?",
+      "options": [
+        "Библиотека для параллельных CPU вычислений",
+        "Кооперативная многозадачность для I/O-bound задач",
+        "Замена multiprocessing для любых задач",
+        "Синхронная обработка очередей"
+      ],
+      "correct": 1,
+      "difficulty": "medium",
+      "priority": 3,
+      "qa_context": "В тестах: `isinstance(response_body, dict)` — проверка типа ответа. `isinstance(user_id, (int, str))` — принимаем оба типа ID. В schema validation — основной инструмент."
+    }
+  ]
+}

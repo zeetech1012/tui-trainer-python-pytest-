@@ -1,0 +1,373 @@
+/* Global */
+Screen {
+    background: $surface;
+}
+
+/* Header / Footer */
+Header {
+    background: $primary;
+    color: $text;
+}
+
+Footer {
+    background: $primary-darken-2;
+}
+
+/* Menu screen */
+#menu-container {
+    align: center middle;
+    height: 1fr;
+}
+
+#logo {
+    width: 60;
+    height: 7;
+    content-align: center middle;
+    border: double $primary;
+    color: $primary;
+    text-style: bold;
+    margin-bottom: 2;
+}
+
+#menu-title {
+    text-align: center;
+    color: $text-muted;
+    margin-bottom: 1;
+}
+
+#menu-list {
+    width: 50;
+    height: auto;
+}
+
+.menu-btn {
+    width: 100%;
+    margin-bottom: 1;
+}
+
+/* Cards / panels */
+.card {
+    border: round $primary;
+    padding: 1 2;
+    margin: 1;
+}
+
+.card-title {
+    text-style: bold;
+    color: $primary;
+    margin-bottom: 1;
+}
+
+.tag-easy {
+    color: $success;
+}
+
+.tag-medium {
+    color: $warning;
+}
+
+.tag-hard {
+    color: $error;
+}
+
+/* Flashcard */
+#flashcard-screen {
+    align: center top;
+    overflow-y: auto;
+}
+
+#flashcard-container {
+    width: 90;
+    height: auto;
+    align: center top;
+    padding: 1 2;
+}
+
+#question-box {
+    border: round $primary;
+    padding: 2 3;
+    height: auto;
+    margin-bottom: 1;
+}
+
+#answer-box {
+    border: round $success;
+    padding: 2 3;
+    height: auto;
+    margin-bottom: 1;
+    display: none;
+}
+
+#answer-box.visible {
+    display: block;
+}
+
+#fc-extra {
+    border: round $warning;
+    padding: 1 2;
+    height: auto;
+    margin-bottom: 1;
+    display: none;
+    color: $warning;
+}
+
+#fc-extra.visible {
+    display: block;
+}
+
+#fc-qa {
+    border: round $accent;
+    padding: 1 2;
+    height: auto;
+    margin-bottom: 1;
+    display: none;
+}
+
+#fc-qa.visible {
+    display: block;}
+
+#quiz-qa {
+    border: round $accent;
+    padding: 1 2;
+    height: auto;
+    margin-top: 1;
+    display: none;
+}
+
+#quiz-qa.visible {
+    display: block;
+}
+
+#qa-why-box {
+    border: round $accent;
+    padding: 1 2;
+    height: auto;
+    margin-bottom: 1;
+}
+
+#flashcard-meta {
+    color: $text-muted;
+    text-align: right;
+    margin-bottom: 1;
+}
+
+#flashcard-controls {
+    height: 3;
+    layout: horizontal;
+    align: center middle;
+}
+
+.fc-btn {
+    margin: 0 1;
+    min-width: 16;
+}
+
+/* Quiz */
+#quiz-container {
+    width: 80;
+    align: center top;
+    height: 1fr;
+}
+
+#quiz-question {
+    border: round $primary;
+    padding: 2 3;
+    margin-bottom: 2;
+    height: auto;
+}
+
+.option-btn {
+    width: 100%;
+    margin-bottom: 1;
+    text-align: left;
+}
+
+.option-btn.correct {
+    background: $success;
+    color: $text;
+}
+
+.option-btn.wrong {
+    background: $error;
+    color: $text;
+}
+
+#quiz-result {
+    height: 3;
+    content-align: center middle;
+    margin-top: 1;
+    display: none;
+}
+
+#quiz-result.visible {
+    display: block;
+}
+
+/* Coding screen */
+#coding-layout {
+    layout: horizontal;
+    height: 1fr;
+}
+
+#task-panel {
+    width: 40%;
+    border-right: solid $primary;
+    padding: 1 2;
+    overflow-y: auto;
+}
+
+#editor-panel {
+    width: 60%;
+    padding: 1 2;
+    layout: vertical;
+}
+
+#code-editor {
+    height: 1fr;
+    border: round $primary;
+}
+
+#solution-box {
+    height: auto;
+    border: round $success;
+    padding: 1 2;
+    display: none;
+    margin-top: 1;
+}
+
+#solution-box.visible {
+    display: block;
+}
+
+#coding-controls {
+    height: 3;
+    layout: horizontal;
+    margin-top: 1;
+}
+
+/* Wiki Menu */
+#wiki-menu-container {
+    height: 1fr;
+    padding: 1 3;
+    overflow-y: auto;
+}
+
+#wiki-menu-title {
+    text-style: bold;
+    color: $primary;
+    text-align: center;
+    margin-bottom: 1;
+    padding: 1 2;
+    border: double $primary;
+    width: 60;
+    content-align: center middle;
+}
+
+#wiki-menu-subtitle {
+    color: $text-muted;
+    text-align: center;
+    margin-bottom: 2;
+}
+
+.wiki-section-header {
+    text-style: bold;
+    color: $accent;
+    margin-top: 1;
+    margin-bottom: 0;
+    padding: 0 1;
+    border-left: thick $accent;
+}
+
+.wiki-section-list {
+    padding-left: 2;
+    height: auto;
+}
+
+.wiki-article-btn {
+    width: 55;
+    margin-bottom: 0;
+    text-align: left;
+    height: 2;
+    border: none;
+    color: $text;
+}
+
+.wiki-article-btn:hover {
+    background: $primary-darken-1;
+    color: $text;
+}
+
+#wiki-menu-spacer {
+    height: 2;
+}
+
+/* Wiki Article */
+#wiki-article-layout {
+    height: 1fr;
+    layout: vertical;
+}
+
+#wiki-article-nav {
+    height: 4;
+    padding: 0 2;
+    background: $surface-darken-1;
+    border-bottom: solid $primary;
+    layout: vertical;
+}
+
+#wiki-breadcrumb {
+    text-style: bold;
+    color: $primary;
+    height: 2;
+    content-align: left middle;
+}
+
+#wiki-nav-hint {
+    color: $text-muted;
+    height: 2;
+    content-align: left middle;
+}
+
+#wiki-article-scroll {
+    height: 1fr;
+    padding: 1 4;
+    overflow-y: auto;
+}
+
+#wiki-article-content {
+    width: 100%;
+}
+
+/* Stats */
+#stats-container {
+    width: 80;
+    align: center top;
+    padding: 1 2;
+    height: 1fr;
+}
+
+.stat-row {
+    layout: horizontal;
+    height: 3;
+    margin-bottom: 1;
+}
+
+.stat-label {
+    width: 30%;
+    content-align: left middle;
+    color: $text-muted;
+}
+
+.stat-bar-bg {
+    width: 55%;
+    height: 1;
+    background: $surface-lighten-1;
+    content-align: left middle;
+}
+
+.stat-value {
+    width: 15%;
+    content-align: right middle;
+    color: $primary;
+    text-style: bold;
+}
